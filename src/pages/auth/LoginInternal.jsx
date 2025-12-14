@@ -31,6 +31,11 @@ export default function LoginInternal() {
             localStorage.setItem("token", data.token);
             localStorage.setItem("user", JSON.stringify(data));
 
+            if (data.premiereConnexion) {
+                navigate("/reset-password");
+                return;
+            }
+
             if (data.role === "ADMIN") navigate("/admin/dashboard");
             else if (data.role === "COMMERCIAL") navigate("/commercial/dashboard");
             else if (data.role === "CAISSIER") navigate("/caissier/dashboard");

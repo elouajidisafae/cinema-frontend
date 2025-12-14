@@ -4,6 +4,7 @@ import { createBrowserRouter } from "react-router-dom";
 import LoginClient from "../pages/auth/LoginClient.jsx";
 import LoginInternal from "../pages/auth/LoginInternal.jsx";
 import Register from "../pages/auth/Register.jsx";
+import ResetPassword from "../pages/auth/ResetPassword.jsx";
 import Unauthorized from "../pages/Unauthorized.jsx";
 
 import ClientDashboard from "../pages/client/Dashboard.jsx";
@@ -54,6 +55,7 @@ export const router = createBrowserRouter([
     { path: "/login/client", element: <LoginClient /> },
     { path: "/login/internal", element: <LoginInternal /> },
     { path: "/register", element: <Register /> },
+    { path: "/reset-password", element: <ResetPassword /> },
     { path: "/unauthorized", element: <Unauthorized /> },
 
     // CLIENT

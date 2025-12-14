@@ -10,4 +10,7 @@ export const authApi = {
 
     register: (data) =>
         api.post("/auth/register", data),
+
+    resetInitialPassword: (newPassword) =>
+        api.post("/auth/reset-initial-password", { newPassword }),
 };
