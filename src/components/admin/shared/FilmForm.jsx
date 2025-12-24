@@ -2,6 +2,11 @@ import { useState } from "react";
 import { Upload, Film as FilmIcon, Calendar, Clock, Tag, FileText, Youtube, X, Image } from "lucide-react";
 import { adminApi } from "../../../api/admin.api";
 
+const GENRES = [
+    "Action", "Aventure", "Comédie", "Drame", "Fantastique",
+    "Horreur", "Policier", "Romance", "Science-Fiction", "Thriller", "Animation", "Documentaire"
+];
+
 export default function FilmForm({ film, onSubmit, onCancel }) {
     const [formData, setFormData] = useState({
         titre: film?.titre || "",
@@ -10,7 +15,8 @@ export default function FilmForm({ film, onSubmit, onCancel }) {
         genre: film?.genre || "",
         dateSortie: film?.dateSortie || "",
         afficheUrl: film?.afficheUrl || "",
-        trailerUrl: film?.trailerUrl || ""
+        trailerUrl: film?.trailerUrl || "",
+        ageLimite: film?.ageLimite || ""
     });
 
     const [imageFile, setImageFile] = useState(null);
@@ -89,6 +95,7 @@ export default function FilmForm({ film, onSubmit, onCancel }) {
             const dataToSubmit = {
                 ...formData,
                 duree: parseInt(formData.duree),
+                ageLimite: formData.ageLimite,
                 afficheUrl
             };
 
@@ -142,8 +149,8 @@ export default function FilmForm({ film, onSubmit, onCancel }) {
                         {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
                     </div>
 
-                    {/* Durée et Genre */}
-                    <div className="grid grid-cols-2 gap-4">
+                    {/* Durée, Genre et Age Limite */}
+                    <div className="grid grid-cols-3 gap-4">
                         <div>
                             <label className="flex items-center gap-2 text-sm font-medium text-zinc-400 mb-2">
                                 <Clock className="w-4 h-4" />
@@ -164,15 +171,32 @@ export default function FilmForm({ film, onSubmit, onCancel }) {
                                 <Tag className="w-4 h-4" />
                                 Genre
                             </label>
-                            <input
-                                type="text"
+                            <select
                                 name="genre"
                                 value={formData.genre}
                                 onChange={handleChange}
-                                className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:border-red-600 focus:ring-1 focus:ring-red-600 outline-none transition-all"
-                                placeholder="Action"
-                            />
+                                className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:border-red-600 focus:ring-1 focus:ring-red-600 outline-none transition-all appearance-none"
+                            >
+                                <option value="" disabled>Sélectionner un genre</option>
+                                {GENRES.map(g => (
+                                    <option key={g} value={g} className="bg-zinc-900">{g}</option>
+                                ))}
+                            </select>
                             {errors.genre && <p className="text-red-500 text-xs mt-1">{errors.genre}</p>}
+                        </div>
+                        <div>
+                            <label className="flex items-center gap-2 text-sm font-medium text-zinc-400 mb-2">
+                                <Tag className="w-4 h-4" />
+                                Age Limite
+                            </label>
+                            <input
+                                type="text"
+                                name="ageLimite"
+                                value={formData.ageLimite}
+                                onChange={handleChange}
+                                className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:border-red-600 focus:ring-1 focus:ring-red-600 outline-none transition-all"
+                                placeholder="Ex: 12+"
+                            />
                         </div>
                     </div>
 

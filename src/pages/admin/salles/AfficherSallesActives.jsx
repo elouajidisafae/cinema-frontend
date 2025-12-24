@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Plus, Search, Theater, Archive } from "lucide-react";
+import ConfirmModal from "../../../components/admin/ConfirmModal";
 import { useNavigate } from "react-router-dom";
 import { adminApi } from "../../../api/admin.api.js";
 
@@ -8,6 +9,8 @@ export default function AfficherSallesActives() {
     const [salles, setSalles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false, salle: null });
+    const [error, setError] = useState(null);
 
     const fetchSalles = async () => {
         setLoading(true);
@@ -25,13 +28,20 @@ export default function AfficherSallesActives() {
         fetchSalles();
     }, []);
 
-    const handleToggleStatus = async (salle) => {
-        if (window.confirm(`Voulez-vous vraiment désactiver la salle "${salle.nom}" ?`)) {
+    const handleToggleStatus = async () => {
+        if (confirmModal.salle) {
+            setError(null);
             try {
-                await adminApi.toggleSalleActivation(salle.id, false);
+                await adminApi.toggleSalleActivation(confirmModal.salle.id, false);
+                setConfirmModal({ isOpen: false, salle: null });
                 fetchSalles();
             } catch (error) {
                 console.error("Error toggling status:", error);
+                const errorMessage = error.response?.data?.message || error.response?.data?.error || "Une erreur est survenue lors de la désactivation.";
+                setError(errorMessage);
+                setConfirmModal({ isOpen: false, salle: null });
+                // Effacer l'erreur après 5 secondes
+                setTimeout(() => setError(null), 5000);
             }
         }
     };
@@ -72,6 +82,14 @@ export default function AfficherSallesActives() {
                 </div>
             </div>
 
+            {/* Error Message */}
+            {error && (
+                <div className="mb-6 p-4 bg-red-600/10 border border-red-600/20 rounded-xl flex items-center gap-3 text-red-500 animate-in fade-in slide-in-from-top-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"></div>
+                    <p className="text-sm font-medium">{error}</p>
+                </div>
+            )}
+
             {/* Search Bar */}
             <div className="mb-6">
                 <div className="relative">
@@ -105,6 +123,7 @@ export default function AfficherSallesActives() {
                                 <th className="text-left p-4 text-sm font-semibold text-zinc-400">Nom</th>
                                 <th className="text-left p-4 text-sm font-semibold text-zinc-400">Capacité</th>
                                 <th className="text-left p-4 text-sm font-semibold text-zinc-400">Type</th>
+                                <th className="text-left p-4 text-sm font-semibold text-zinc-400">Config</th>
                                 <th className="text-right p-4 text-sm font-semibold text-zinc-400">Actions</th>
                             </tr>
                             </thead>
@@ -126,6 +145,12 @@ export default function AfficherSallesActives() {
                                             </span>
                                     </td>
                                     <td className="p-4">
+                                        <div className="flex flex-col text-xs text-zinc-500">
+                                            <span>{salle.nombreRangees} rangées</span>
+                                            <span>{salle.siegesParRangee} sièges/rang</span>
+                                        </div>
+                                    </td>
+                                    <td className="p-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
                                             <button
                                                 onClick={() => navigate(`/admin/salles/details/${salle.id}`)}
@@ -140,7 +165,7 @@ export default function AfficherSallesActives() {
                                                 Modifier
                                             </button>
                                             <button
-                                                onClick={() => handleToggleStatus(salle)}
+                                                onClick={() => setConfirmModal({ isOpen: true, salle: salle })}
                                                 className="px-3 py-1.5 bg-red-600/10 hover:bg-red-600/20 text-red-400 rounded-lg transition-all text-sm"
                                             >
                                                 Désactiver
@@ -154,6 +179,15 @@ export default function AfficherSallesActives() {
                     </div>
                 )}
             </div>
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal({ isOpen: false, salle: null })}
+                onConfirm={handleToggleStatus}
+                title="Désactivation de la salle"
+                message={`Êtes-vous sûr de vouloir désactiver la salle "${confirmModal.salle?.nom}" ?`}
+                type="danger"
+            />
         </div>
     );
 }

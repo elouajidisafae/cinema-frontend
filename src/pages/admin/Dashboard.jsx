@@ -1,53 +1,41 @@
-import { useState, useEffect, useContext, useRef } from "react";
-import { Search, TrendingUp, Clock, ArrowUpRight, Users, Film, Theater, Calendar, Ticket, UserPlus, Shield, Bell } from "lucide-react";
+import { useState, useEffect, useContext, useRef, useMemo } from "react";
+import { Search, TrendingUp, Clock, ArrowUpRight, Users, Film, Theater, Calendar, Ticket, UserPlus, Shield, Bell, LayoutDashboard, ShieldCheck, CheckCircle2, Tag, Edit } from "lucide-react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { adminApi } from "../../api/admin.api";
 import { AuthContext } from "../../context/AuthContext";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, CartesianGrid, LineChart, Line, Legend } from 'recharts';
 import SidebarAdmin from "../../components/admin/SidebarAdmin";
 
 export default function CinemanaAdmin() {
     const { logout, user } = useContext(AuthContext); // Get connected user
     const navigate = useNavigate();
     const [showProfile, setShowProfile] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [openSubMenus, setOpenSubMenus] = useState({});
     const [searchQuery, setSearchQuery] = useState("");
-    const [searchResults, setSearchResults] = useState([]);
     const [showSearchResults, setShowSearchResults] = useState(false);
     const searchRef = useRef(null);
     const location = useLocation();
 
-    // Determine active menu based on URL
-    const getInitialMenu = () => {
+    // Simplified menu determination logic
+    const activeMenu = useMemo(() => {
         const path = location.pathname.split('/')[2] || 'dashboard';
         if (path === 'caissiers') return 'caissiers';
         if (path === 'commerciaux') return 'commerciaux';
         if (path === 'films') return 'films';
         if (path === 'salles') return 'salles';
+        if (path === 'offres') return 'offres';
+        if (path.includes('hist-')) return path;
         return 'dashboard';
-    };
-
-    const [sidebarOpen, setSidebarOpen] = useState(true);
-    const [activeMenu, setActiveMenu] = useState(getInitialMenu());
-    const [openSubMenus, setOpenSubMenus] = useState({});
-
-    // Sync state with URL
-    useEffect(() => {
-        const path = location.pathname.split('/')[2] || 'dashboard';
-        if (path.includes('caissiers')) setActiveMenu('caissiers');
-        else if (path.includes('commerciaux')) setActiveMenu('commerciaux');
-        else if (path.includes('films')) setActiveMenu('films');
-        else if (path.includes('salles')) setActiveMenu('salles');
-        else if (path.includes('hist-')) setActiveMenu(path);
-        else setActiveMenu('dashboard');
     }, [location.pathname]);
 
     const handleMenuNavigation = (menuId) => {
-        setActiveMenu(menuId);
         if (menuId === 'dashboard') navigate('/admin/dashboard');
         else if (menuId === 'caissiers') navigate('/admin/caissiers');
         else if (menuId === 'commerciaux') navigate('/admin/commerciaux');
         else if (menuId === 'films') navigate('/admin/films');
         else if (menuId === 'salles') navigate('/admin/salles');
+        else if (menuId === 'offres') navigate('/admin/offres');
         else navigate('/admin/' + menuId);
     };
 
@@ -122,13 +110,29 @@ export default function CinemanaAdmin() {
     const handleNavigateToHistory = (type) => {
         setOpenSubMenus(prev => ({ ...prev, "historique": true }));
         switch (type) {
-            case "Utilisateur": setActiveMenu("hist-users"); break;
-            case "Film": setActiveMenu("hist-films"); break;
-            case "Salle": setActiveMenu("hist-salles"); break;
-            case "Client": setActiveMenu("hist-clients"); break;
-            case "Séance": setActiveMenu("hist-seances"); break;
-            case "Réservation": setActiveMenu("hist-reservations"); break;
-            default: setActiveMenu("historique");
+            case "Utilisateur":
+                navigate("/admin/hist-users");
+                break;
+            case "Film":
+                navigate("/admin/hist-films");
+                break;
+            case "Salle":
+                navigate("/admin/hist-salles");
+                break;
+            case "Client":
+                navigate("/admin/hist-clients");
+                break;
+            case "Séance":
+                navigate("/admin/hist-seances");
+                break;
+            case "Réservation":
+                navigate("/admin/hist-reservations");
+                break;
+            case "Offre":
+                navigate("/admin/hist-offres");
+                break;
+            default:
+                navigate("/admin/dashboard");
         }
     };
 
@@ -157,13 +161,9 @@ export default function CinemanaAdmin() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Perform search when query changes
-    useEffect(() => {
-        if (!searchQuery.trim()) {
-            setSearchResults([]);
-            setShowSearchResults(false);
-            return;
-        }
+    // Perform search as a computed value to avoid cascading renders
+    const searchResults = useMemo(() => {
+        if (!searchQuery.trim()) return [];
 
         const query = searchQuery.toLowerCase();
         const results = [];
@@ -227,9 +227,20 @@ export default function CinemanaAdmin() {
             });
         }
 
-        setSearchResults(results);
-        setShowSearchResults(results.length > 0);
+        if (query.includes('offre') || query.includes('promo')) {
+            results.push({
+                category: 'Offres',
+                items: [{ type: 'Offres', label: 'Voir toutes les offres', path: '/admin/offres' }]
+            });
+        }
+
+        return results;
     }, [searchQuery, userStats, filmSalleStats]);
+
+    // Update showSearchResults visibility based on results
+    useEffect(() => {
+        setShowSearchResults(searchResults.length > 0);
+    }, [searchResults]);
 
     const handleSearchResultClick = (path) => {
         navigate(path);
@@ -263,43 +274,55 @@ export default function CinemanaAdmin() {
         }));
     };
 
-    const statusData = chartsData?.reservationStatus ? Object.keys(chartsData.reservationStatus).map(key => ({
-        name: key,
-        value: chartsData.reservationStatus[key]
-    })) : [];
-
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'VALIDEE': return '#10b981';
-            case 'EN_ATTENTE': return '#f59e0b';
-            case 'ANNULEE': return '#ef4444';
-            default: return '#8884d8';
-        }
-    };
 
     const topFilmsData = chartsData?.topFilms ? chartsData.topFilms.map(film => ({
         name: film.titre,
         reservations: film.count
     })) : [];
 
-    const peakHoursData = chartsData?.peakHours ? Object.keys(chartsData.peakHours).map(hour => ({
-        hour: `${hour}h`,
-        reservations: chartsData.peakHours[hour]
+
+    const revenueData = chartsData?.dailyRevenue ? Object.keys(chartsData.dailyRevenue).map(date => ({
+        date: new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }),
+        revenue: chartsData.dailyRevenue[date]
     })) : [];
+
+    const genreData = chartsData?.genreDistribution ? Object.keys(chartsData.genreDistribution).map(genre => ({
+        name: genre,
+        value: chartsData.genreDistribution[genre]
+    })) : [];
+
+    const statusTrendData = chartsData?.dailyStatusStats ? Object.keys(chartsData.dailyStatusStats).map(date => {
+        const stats = chartsData.dailyStatusStats[date];
+        return {
+            date: new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }),
+            'Validées': stats['VALIDEE'] || 0,
+            'En Attente': stats['EN_ATTENTE'] || 0,
+            'Annulées': stats['ANNULEE'] || 0
+        };
+    }) : [];
+
+    // Professional Red/Grey/Black Palette
+    const ChartColors = {
+        primary: '#dc2626',
+        secondary: '#71717a',
+        tertiary: '#3f3f46',
+        accent: '#991b1b'
+    };
+
+    const GENRE_COLORS = ['#dc2626', '#1a1a1e', '#991b1b', '#3f3f46', '#18181b', '#52525b'];
 
 
     const activityRef = useRef(null);
 
     const handleScrollToActivity = () => {
         if (activeMenu !== 'dashboard') {
-            setActiveMenu('dashboard');
             navigate('/admin/dashboard');
-            // Allow time for render
+            // Allow time for navigation and component mount
             setTimeout(() => {
-                activityRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 100);
+                activityRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 300); // Increased timeout slightly for safer redirection
         } else {
-            activityRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            activityRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     };
 
@@ -366,6 +389,7 @@ export default function CinemanaAdmin() {
                                                                         {item.type === 'Séances' && <Calendar className="w-4 h-4 text-red-500" />}
                                                                         {item.type === 'Réservations' && <Ticket className="w-4 h-4 text-red-500" />}
                                                                         {item.type === 'Clients' && <UserPlus className="w-4 h-4 text-red-500" />}
+                                                                        {item.type === 'Offres' && <Tag className="w-4 h-4 text-red-500" />}
                                                                     </div>
                                                                     <div className="flex-1">
                                                                         <p className="text-sm font-medium text-white group-hover/item:text-red-400 transition-colors">{item.label}</p>
@@ -450,7 +474,7 @@ export default function CinemanaAdmin() {
                                         <div className="space-y-4">
                                             <div className="flex justify-between items-center p-3 rounded-xl bg-zinc-900/30">
                                                 <span className="text-zinc-500 text-sm font-medium">Actifs</span>
-                                                <span className="text-white font-bold text-lg">{userStats.totalActifs}</span>
+                                                <span className="text-emerald-400 font-bold text-lg">{userStats.totalActifs}</span>
                                             </div>
                                             <div className="flex justify-between items-center p-3 rounded-xl bg-zinc-900/30">
                                                 <span className="text-zinc-500 text-sm font-medium">Inactifs</span>
@@ -465,15 +489,14 @@ export default function CinemanaAdmin() {
                                                 <span className="text-zinc-600 text-sm">Caissiers</span>
                                                 <span className="text-zinc-400 font-semibold">{userStats.caissiersActifs}</span>
                                             </div>
-                                            <div className="flex justify-between items-center p-3 rounded-xl bg-zinc-900/20">
-                                                <span className="text-zinc-600 text-sm">Clients créés</span>
-                                                <span className="text-zinc-400 font-semibold">{userStats.totalClientsCrees}</span>
+                                            <div className="flex justify-between items-center p-3 rounded-xl bg-zinc-900/30">
+                                                <span className="text-zinc-500 text-sm font-medium">Clients créés</span>
+                                                <span className="text-emerald-400 font-bold text-lg">{userStats.totalClientsCrees}</span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Salles */}
                                 <div className="group relative bg-gradient-to-br from-zinc-950 to-zinc-900 rounded-3xl p-4 border border-zinc-800/50 hover:border-red-900/50 transition-all duration-500 overflow-hidden">
                                     <div className="absolute inset-0 bg-gradient-to-br from-red-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/5 rounded-full blur-3xl"></div>
@@ -509,7 +532,6 @@ export default function CinemanaAdmin() {
                                     </div>
                                 </div>
 
-                                {/* Films */}
                                 <div className="group relative bg-gradient-to-br from-zinc-950 to-zinc-900 rounded-3xl p-4 border border-zinc-800/50 hover:border-red-900/50 transition-all duration-500 overflow-hidden">
                                     <div className="absolute inset-0 bg-gradient-to-br from-red-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/5 rounded-full blur-3xl"></div>
@@ -547,51 +569,129 @@ export default function CinemanaAdmin() {
                             </div>
 
                             {/* Charts */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                <div className="relative bg-zinc-900/50 rounded-3xl p-6 border border-zinc-800/50 hover:border-zinc-700 transition-all">
-                                    <h3 className="text-lg font-bold text-white mb-4">Statut des Réservations</h3>
-                                    <div className="h-64">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+                                {/* Revenue Chart - Full width top */}
+                                <div className="lg:col-span-2 relative bg-zinc-950/40 rounded-3xl p-8 border border-red-900/40 shadow-[0_0_50px_-15px_rgba(220,38,38,0.3)] hover:shadow-[0_0_70px_-10px_rgba(220,38,38,0.45)] transition-all duration-500">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <h3 className="text-2xl font-bold tracking-tight text-white flex items-center gap-3">
+                                            <div className="w-2.5 h-8 bg-gradient-to-b from-red-600 to-red-900 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.5)]"></div>
+                                            Flux de Revenus (7j)
+                                        </h3>
+                                        <TrendingUp className="text-red-500 w-7 h-7" />
+                                    </div>
+                                    <div className="h-80">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <AreaChart data={revenueData}>
+                                                <defs>
+                                                    <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#dc2626" stopOpacity={0.4} />
+                                                        <stop offset="95%" stopColor="#dc2626" stopOpacity={0} />
+                                                    </linearGradient>
+                                                </defs>
+                                                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                                                <XAxis dataKey="date" stroke="#27272a" tick={{ fill: '#71717a', fontSize: 12 }} axisLine={false} tickLine={false} />
+                                                <YAxis stroke="#27272a" tick={{ fill: '#71717a', fontSize: 12 }} axisLine={false} tickLine={false} />
+                                                <Tooltip
+                                                    contentStyle={{
+                                                        backgroundColor: '#09090b',
+                                                        borderColor: '#dc2626',
+                                                        borderRadius: '16px',
+                                                        borderWidth: '1.5px',
+                                                        boxShadow: '0 20px 40px rgba(0,0,0,0.9)'
+                                                    }}
+                                                    itemStyle={{ color: '#ffffff', fontWeight: 'bold' }}
+                                                    labelStyle={{ color: '#a1a1aa', marginBottom: '4px' }}
+                                                />
+                                                <Area type="monotone" dataKey="revenue" stroke="#dc2626" strokeWidth={4} fillOpacity={1} fill="url(#colorRev)" />
+                                            </AreaChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+
+                                {/* Status Trends Chart */}
+                                <div className="lg:col-span-2 relative bg-zinc-950/40 rounded-3xl p-8 border border-red-900/40 shadow-[0_0_50px_-15px_rgba(220,38,38,0.3)] hover:shadow-[0_0_70px_-10px_rgba(220,38,38,0.45)] transition-all duration-500">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <h3 className="text-2xl font-bold tracking-tight text-white flex items-center gap-3">
+                                            <div className="w-2.5 h-8 bg-gradient-to-b from-red-600 to-red-900 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.5)]"></div>
+                                            Tendances des Réservations (7j)
+                                        </h3>
+                                        <LayoutDashboard className="text-red-500 w-7 h-7" />
+                                    </div>
+                                    <div className="h-80">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <LineChart data={statusTrendData}>
+                                                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff03" vertical={false} />
+                                                <XAxis dataKey="date" stroke="#27272a" tick={{ fill: '#71717a', fontSize: 12 }} axisLine={false} tickLine={false} />
+                                                <YAxis stroke="#27272a" tick={{ fill: '#71717a', fontSize: 12 }} axisLine={false} tickLine={false} />
+                                                <Tooltip
+                                                    contentStyle={{ backgroundColor: '#09090b', borderColor: '#dc2626', borderRadius: '16px', borderWidth: '1px' }}
+                                                    itemStyle={{ fontWeight: 'bold' }}
+                                                />
+                                                <Legend iconType="circle" />
+                                                <Line type="monotone" dataKey="Validées" stroke="#dc2626" strokeWidth={3} dot={{ r: 4, fill: '#dc2626' }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                                                <Line type="monotone" dataKey="En Attente" stroke="#71717a" strokeWidth={3} dot={{ r: 4, fill: '#71717a' }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                                                <Line type="monotone" dataKey="Annulées" stroke="#3f3f46" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                                            </LineChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+
+                                {/* Genre Distribution */}
+                                <div className="relative bg-zinc-950/40 rounded-3xl p-8 border border-red-900/40 shadow-[0_0_50px_-20px_rgba(220,38,38,0.25)] hover:shadow-[0_0_60px_-15px_rgba(220,38,38,0.4)] transition-all duration-500">
+                                    <div className="flex items-center gap-3 mb-8 pb-4 border-b border-red-900/10">
+                                        <div className="w-2.5 h-8 bg-gradient-to-b from-red-600 to-red-900 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.5)]"></div>
+                                        <h3 className="text-2xl font-bold tracking-tight text-white">Répartition par Genre</h3>
+                                    </div>
+                                    <div className="h-72">
                                         <ResponsiveContainer width="100%" height="100%">
                                             <PieChart>
-                                                <Pie data={statusData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
-                                                    {statusData.map((entry, index) => (
-                                                        <Cell key={`cell-${index}`} fill={getStatusColor(entry.name)} />
+                                                <Pie
+                                                    data={genreData}
+                                                    cx="50%"
+                                                    cy="50%"
+                                                    innerRadius={70}
+                                                    outerRadius={100}
+                                                    paddingAngle={8}
+                                                    dataKey="value"
+                                                >
+                                                    {genreData.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={GENRE_COLORS[index % GENRE_COLORS.length]} stroke="rgba(0,0,0,0.3)" />
                                                     ))}
                                                 </Pie>
-                                                <Tooltip contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '12px' }} itemStyle={{ color: '#fff' }} />
+                                                <Tooltip
+                                                    contentStyle={{ backgroundColor: '#09090b', borderColor: '#dc2626', borderRadius: '12px', border: '1px solid #3f3f46' }}
+                                                    itemStyle={{ color: '#ffffff' }}
+                                                />
                                             </PieChart>
                                         </ResponsiveContainer>
                                     </div>
                                 </div>
-                                <div className="relative bg-zinc-900/50 rounded-3xl p-6 border border-zinc-800/50 hover:border-zinc-700 transition-all">
-                                    <h3 className="text-lg font-bold text-white mb-4">Top 5 Films</h3>
-                                    <div className="h-64">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <BarChart data={topFilmsData} layout="vertical">
-                                                <XAxis type="number" hide />
-                                                <YAxis dataKey="name" type="category" width={100} tick={{ fill: '#a1a1aa', fontSize: 10 }} />
-                                                <Tooltip contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '12px' }} itemStyle={{ color: '#fff' }} cursor={{ fill: 'transparent' }} />
-                                                <Bar dataKey="reservations" fill="#ef4444" radius={[0, 4, 4, 0]} barSize={20} />
-                                            </BarChart>
-                                        </ResponsiveContainer>
+
+                                {/* Top Films - Revamped */}
+                                <div className="relative bg-zinc-950/40 rounded-3xl p-8 border border-red-900/40 shadow-[0_0_50px_-20px_rgba(220,38,38,0.25)] hover:shadow-[0_0_60px_-15px_rgba(220,38,38,0.4)] transition-all duration-500">
+                                    <div className="flex items-center gap-3 mb-8 pb-4 border-b border-red-900/10">
+                                        <div className="w-2.5 h-8 bg-gradient-to-b from-red-600 to-red-900 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.5)]"></div>
+                                        <h3 className="text-2xl font-bold tracking-tight text-white">Top 5 Films</h3>
                                     </div>
-                                </div>
-                                <div className="relative bg-zinc-900/50 rounded-3xl p-6 border border-zinc-800/50 hover:border-zinc-700 transition-all">
-                                    <h3 className="text-lg font-bold text-white mb-4">Heures de Pointe</h3>
-                                    <div className="h-64">
+                                    <div className="h-72">
                                         <ResponsiveContainer width="100%" height="100%">
-                                            <AreaChart data={peakHoursData}>
-                                                <defs>
-                                                    <linearGradient id="colorReservations" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
-                                                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                                                    </linearGradient>
-                                                </defs>
-                                                <XAxis dataKey="hour" tick={{ fill: '#a1a1aa', fontSize: 10 }} />
-                                                <YAxis hide />
-                                                <Tooltip contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '12px' }} itemStyle={{ color: '#fff' }} />
-                                                <Area type="monotone" dataKey="reservations" stroke="#ef4444" fillOpacity={1} fill="url(#colorReservations)" />
-                                            </AreaChart>
+                                            <BarChart data={topFilmsData} layout="vertical" margin={{ left: 0, right: 30 }}>
+                                                <XAxis type="number" hide />
+                                                <YAxis
+                                                    dataKey="name"
+                                                    type="category"
+                                                    width={100}
+                                                    tick={{ fill: '#cbd5e1', fontSize: 11, fontWeight: 'medium' }}
+                                                    axisLine={{ stroke: '#3f3f46', strokeWidth: 1 }}
+                                                    tickLine={false}
+                                                />
+                                                <Tooltip
+                                                    cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+                                                    contentStyle={{ backgroundColor: '#09090b', border: '1px solid #450A0A', borderRadius: '10px' }}
+                                                    itemStyle={{ color: '#ffffff' }}
+                                                />
+                                                <Bar dataKey="reservations" fill="#dc2626" radius={0} barSize={24} minPointSize={2} />
+                                            </BarChart>
                                         </ResponsiveContainer>
                                     </div>
                                 </div>
@@ -604,10 +704,8 @@ export default function CinemanaAdmin() {
                                 <div className="relative">
                                     <div className="flex items-center justify-between mb-8">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-red-600/10 rounded-xl flex items-center justify-center">
-                                                <Clock className="w-5 h-5 text-red-500" />
-                                            </div>
-                                            <h3 className="text-2xl font-bold text-white">Activité récente</h3>
+                                            <div className="w-2.5 h-8 bg-gradient-to-b from-red-600 to-red-900 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.5)]"></div>
+                                            <h3 className="text-2xl font-bold tracking-tight text-white">Activité récente</h3>
                                         </div>
                                     </div>
 
@@ -627,6 +725,7 @@ export default function CinemanaAdmin() {
                                                         {activity.entiteType === 'Séance' && <Calendar className="w-7 h-7 text-red-500" />}
                                                         {activity.entiteType === 'Réservation' && <Ticket className="w-7 h-7 text-red-500" />}
                                                         {activity.entiteType === 'Client' && <UserPlus className="w-7 h-7 text-red-500" />}
+                                                        {activity.entiteType === 'Offre' && <Tag className="w-7 h-7 text-red-500" />}
                                                     </div>
                                                 </div>
                                                 <div className="flex-1">
@@ -637,13 +736,16 @@ export default function CinemanaAdmin() {
                                                         Par {activity.adminNomComplet || "Admin"}
                                                     </p>
                                                 </div>
-                                                <div className="flex items-center gap-2 text-zinc-600 text-xs">
-                                                    <Clock className="w-3 h-3" />
-                                                    {formatTime(activity.dateOperation)}
-                                                </div>
-                                                {/* Icon de redirection explicite */}
-                                                <div className="text-zinc-600 group-hover:text-red-500 transition-colors">
-                                                    <ArrowUpRight className="w-5 h-5" />
+                                                <div className="flex items-center gap-4">
+                                                    <div className="flex items-center gap-2 text-zinc-600 text-xs">
+                                                        <Clock className="w-3 h-3" />
+                                                        {formatTime(activity.dateOperation)}
+                                                    </div>
+
+                                                    {/* Icon de redirection explicite */}
+                                                    <div className="text-zinc-600 group-hover:text-red-500 transition-colors">
+                                                        <ArrowUpRight className="w-5 h-5" />
+                                                    </div>
                                                 </div>
                                             </div>
                                         ))}

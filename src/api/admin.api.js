@@ -74,8 +74,20 @@ export const adminApi = {
     getGlobalSeanceHistoryStats: () => api.get("/admin/historique/seances/stats"),
     getFilteredSeanceHistory: (params) => api.get("/admin/historique/seances", { params }),
 
+    getGlobalOfferHistoryStats: () => api.get("/admin/historique/offres/stats"),
+    getFilteredOfferHistory: (params) => api.get("/admin/historique/offres", { params }),
+
     getGlobalReservationStats: () => api.get("/admin/historique/reservations/stats"),
 
     getFilteredReservations: (params) => api.get("/admin/historique/reservations", { params }),
     getFilteredClients: (params) => api.get("/admin/clients", { params }),
+
+    // --- Offers Management ---
+    getAllOffres: () => api.get("/offres"),
+    getInactiveOffres: () => api.get("/offres/inactive"),
+    getOffreById: (id) => api.get(`/offres/${id}`),
+    createOffre: (data) => api.post("/offres", data),
+    updateOffre: (id, data) => api.put(`/offres/${id}`, data),
+    deleteOffre: (id) => api.delete(`/offres/${id}`),
+    activateOffre: (id) => api.post(`/offres/${id}/activate`),
 };

@@ -1,4 +1,4 @@
-// src/router/index.jsx
+// src/route/index.jsx
 import { createBrowserRouter } from "react-router-dom";
 
 import LoginClient from "../pages/auth/LoginClient.jsx";
@@ -8,9 +8,22 @@ import ResetPassword from "../pages/auth/ResetPassword.jsx";
 import Unauthorized from "../pages/Unauthorized.jsx";
 
 import ClientDashboard from "../pages/client/Dashboard.jsx";
+import ReservationPage from "../pages/client/ReservationPage.jsx";
 import AdminDashboard from "../pages/admin/Dashboard.jsx";
 import CommercialDashboard from "../pages/commercial/Dashboard.jsx";
+import AfficherSeancesActives from "../pages/commercial/AfficherSeancesActives.jsx";
+import AfficherSeancesInactives from "../pages/commercial/AfficherSeancesInactives.jsx";
+import GestionReservations from "../pages/commercial/GestionReservations.jsx";
+import CommercialLayout from "../layouts/commercial/CommercialLayout.jsx";
 import CaissierDashboard from "../pages/caissier/Dashboard.jsx";
+import ScannerPage from "../pages/caissier/ScannerPage.jsx";
+
+// Public Pages
+import PublicLayout from "../layouts/PublicLayout.jsx";
+import FilmList from "../pages/public/FilmList.jsx";
+import FilmDetail from "../pages/public/FilmDetail.jsx";
+import Cinemas from "../pages/public/Cinemas.jsx";
+import Offres from "../pages/public/Offres.jsx";
 
 // Caissier Pages
 import AfficherCaissiersActifs from "../pages/admin/caissiers/AfficherCaissiersActifs.jsx";
@@ -46,12 +59,28 @@ import HistoriqueFilms from "../pages/admin/historique/HistoriqueFilms.jsx";
 import HistoriqueSalles from "../pages/admin/historique/HistoriqueSalles.jsx";
 import HistoriqueSeances from "../pages/admin/historique/HistoriqueSeances.jsx";
 import HistoriqueReservations from "../pages/admin/historique/HistoriqueReservations.jsx";
+import HistoriqueOffres from "../pages/admin/historique/HistoriqueOffres.jsx";
 import ListeClients from "../pages/admin/clients/ListeClients.jsx";
+import AfficherOffresActives from "../pages/admin/offres/AfficherOffresActives.jsx";
+import AfficherOffresDesactivees from "../pages/admin/offres/AfficherOffresDesactivees.jsx";
+import OffreAdd from "../pages/admin/offres/OffreAdd.jsx";
+import OffreEdit from "../pages/admin/offres/OffreEdit.jsx";
 
-import { RoleRoute } from "../route/RoleRoute.jsx";
+import { RoleRoute } from "./RoleRoute.jsx";
 
 export const router = createBrowserRouter([
-    { path: "/", element: <LoginClient /> },
+    // PUBLIC
+    {
+        path: "/",
+        element: <PublicLayout />,
+        children: [
+            { index: true, element: <FilmList /> },
+            { path: "film/:id", element: <FilmDetail /> },
+            { path: "cinemas", element: <Cinemas /> },
+            { path: "offres", element: <Offres /> },
+        ]
+    },
+
     { path: "/login/client", element: <LoginClient /> },
     { path: "/login/internal", element: <LoginInternal /> },
     { path: "/register", element: <Register /> },
@@ -65,6 +94,15 @@ export const router = createBrowserRouter([
         children: [
             { path: "dashboard", element: <ClientDashboard /> },
         ],
+    },
+
+    // RESERVATION (CLient Only)
+    {
+        path: "/reservation/:seanceId",
+        element: <RoleRoute allowedRoles="CLIENT" />,
+        children: [
+            { index: true, element: <ReservationPage /> }
+        ]
     },
 
     // ADMIN
@@ -105,8 +143,6 @@ export const router = createBrowserRouter([
                     { path: "salles/ajouter", element: <AjouterSalle /> },
                     { path: "salles/modifier/:id", element: <ModifierSalle /> },
                     { path: "salles/details/:id", element: <DetailsSalle /> },
-                    { path: "salles/modifier/:id", element: <ModifierSalle /> },
-                    { path: "salles/details/:id", element: <DetailsSalle /> },
 
                     // Historique & Monitoring
                     { path: "hist-users", element: <HistoriqueUtilisateurs /> },
@@ -114,8 +150,15 @@ export const router = createBrowserRouter([
                     { path: "hist-salles", element: <HistoriqueSalles /> },
                     { path: "hist-seances", element: <HistoriqueSeances /> },
                     { path: "hist-reservations", element: <HistoriqueReservations /> },
+                    { path: "hist-offres", element: <HistoriqueOffres /> },
                     { path: "hist-clients", element: <ListeClients /> },
-                    { path: "clients", element: <ListeClients /> }, // Alias for search consistency
+                    { path: "clients", element: <ListeClients /> },
+
+                    // Gestion des Offres
+                    { path: "offres", element: <AfficherOffresActives /> },
+                    { path: "offres/archives", element: <AfficherOffresDesactivees /> },
+                    { path: "offres/ajouter", element: <OffreAdd /> },
+                    { path: "offres/modifier/:id", element: <OffreEdit /> },
                 ]
             }
         ],
@@ -126,16 +169,24 @@ export const router = createBrowserRouter([
         path: "/commercial",
         element: <RoleRoute allowedRoles="COMMERCIAL" />,
         children: [
-            { path: "dashboard", element: <CommercialDashboard /> },
+            {
+                element: <CommercialLayout />,
+                children: [
+                    { path: "dashboard", element: <CommercialDashboard /> },
+                    { path: "seances/actives", element: <AfficherSeancesActives /> },
+                    { path: "seances/archives", element: <AfficherSeancesInactives /> },
+                    { path: "reservations", element: <GestionReservations /> },
+                ]
+            }
         ],
     },
 
-    // CAISSIER
     {
         path: "/caissier",
         element: <RoleRoute allowedRoles="CAISSIER" />,
         children: [
             { path: "dashboard", element: <CaissierDashboard /> },
+            { path: "scanner", element: <ScannerPage /> },
         ],
     },
 

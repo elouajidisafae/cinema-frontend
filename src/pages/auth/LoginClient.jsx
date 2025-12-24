@@ -1,9 +1,9 @@
 import { useState } from "react";
 import {
     Film, Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles,
-    Ticket, Clock, Check
+    Ticket, Clock, Check, X
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { authApi } from "../../api";
 
@@ -15,6 +15,7 @@ export default function LoginClient() {
     const [showPassword, setShowPassword] = useState(false);
 
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const { login } = useAuth(); // important !!!!!
 
     const handleSubmit = async (e) => {
@@ -42,7 +43,12 @@ export default function LoginClient() {
                 nomComplet: data.nomComplet
             }));
 
-            navigate("/client/dashboard");
+            const redirectUrl = searchParams.get("redirect");
+            if (redirectUrl) {
+                navigate(decodeURIComponent(redirectUrl));
+            } else {
+                navigate("/");
+            }
         } catch (err) {
             setError(err.response?.data?.error || "Identifiants incorrects");
         } finally {
@@ -65,20 +71,22 @@ export default function LoginClient() {
                 {/* Header */}
                 <header className="px-8 py-4">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
+                        <Link to="/" className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center">
                                 <Film className="w-5 h-5 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-xl font-black text-white tracking-tight">CINEMANA</h1>
+                                <h1 className="text-xl font-black text-white tracking-tight">CINÉMANA</h1>
                                 <p className="text-[9px] text-gray-500 uppercase tracking-widest font-semibold">RÉSERVATION EN LIGNE</p>
                             </div>
-                        </div>
+                        </Link>
 
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-red-600/10 border border-red-600/30 rounded-full">
-                            <Sparkles className="w-3 h-3 text-red-500" />
-                            <span className="text-[10px] text-red-500 font-bold uppercase tracking-wider">Espace Client</span>
-                        </div>
+                        <Link to="/" className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 border border-zinc-800 hover:border-red-600 hover:text-red-500 rounded-full transition-all group">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 group-hover:text-white transition-colors">Retour au site</span>
+                            <div className="w-5 h-5 rounded-full bg-zinc-800 group-hover:bg-red-600 flex items-center justify-center transition-colors">
+                                <X className="w-3 h-3 text-white" />
+                            </div>
+                        </Link>
                     </div>
                 </header>
 
@@ -199,7 +207,7 @@ export default function LoginClient() {
                                     </div>
 
                                     <div className="flex justify-end">
-                                        <a className="text-[10px] text-blue-500 hover:text-blue-400">Mot de passe oublié ?</a>
+                                        <a className="text-[10px] text-zinc-500 hover:text-white transition-colors cursor-pointer">Mot de passe oublié ?</a>
                                     </div>
 
                                     <button
@@ -232,11 +240,11 @@ export default function LoginClient() {
                                 </div>
 
                                 {/* Register */}
-                                <div className="text-center">
-                                    <p className="text-gray-500 text-xs">
-                                        Pas encore de compte ?{" "}
-                                        <Link to="/register" className="text-blue-500 hover:text-blue-400 font-semibold">
-                                            S'inscrire gratuitement
+                                <div className="text-center mt-6">
+                                    <p className="text-gray-500 text-xs flex items-center justify-center gap-1">
+                                        Pas encore de compte ?
+                                        <Link to="/register" className="text-red-600 hover:text-red-500 font-medium text-xs hover:underline transition-all ml-1">
+                                            Créer un compte gratuitement
                                         </Link>
                                     </p>
                                 </div>
@@ -263,7 +271,7 @@ export default function LoginClient() {
                 {/* Footer */}
                 <footer className="px-8 py-3">
                     <p className="text-center text-gray-700 text-[10px]">
-                        © 2024 Cinemana - Système de réservation en ligne. Propulsé par Spring Boot.
+                        © 2025 CINÉMANA - Système de réservation en ligne. Propulsé par Spring Boot.
                     </p>
                 </footer>
             </div>

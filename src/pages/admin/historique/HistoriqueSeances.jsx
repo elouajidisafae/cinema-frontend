@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { adminApi } from '../../../api/admin.api';
 import HistoriqueTable from '../../../components/admin/shared/HistoriqueTable';
 import MultiSelectFilter from '../../../components/admin/shared/MultiSelectFilter';
-import { PlayCircle, Calendar, Search, Check, Plus, Trash } from 'lucide-react';
+import { PlayCircle, Calendar, Search, Check, Plus, Trash, User, Activity } from 'lucide-react';
 
 export default function HistoriqueSeances() {
     const [data, setData] = useState([]);
@@ -23,8 +23,8 @@ export default function HistoriqueSeances() {
             if (filters.operations && filters.operations.length > 0) {
                 params.operations = filters.operations.join(',');
             }
-            if (filters.start) params.start = new Date(filters.start).toISOString();
-            if (filters.end) params.end = new Date(filters.end).toISOString();
+            if (filters.start) params.start = filters.start;
+            if (filters.end) params.end = filters.end;
 
             const response = await adminApi.getFilteredSeanceHistory(params);
             setData(response.data);
@@ -60,19 +60,54 @@ export default function HistoriqueSeances() {
     ];
 
     const columns = [
-        { header: "Date", accessor: "dateOperation", render: (row) => new Date(row.dateOperation).toLocaleString('fr-FR') },
-        { header: "Commercial", accessor: "adminNomComplet" }, // Using mapped adminNomComplet which holds Commercial Name
         {
-            header: "Action", accessor: "operation", render: (row) => (
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${row.operation === 'CREATION' ? 'bg-green-500/10 text-green-500' :
-                    row.operation === 'SUPPRESSION' ? 'bg-red-500/10 text-red-500' :
-                        'bg-blue-500/10 text-blue-500'
-                }`}>
-                    {row.operation}
-                </span>
+            header: "Date Opération",
+            accessor: "dateOperation",
+            render: (row) => (
+                <div className="flex items-center justify-start gap-3">
+                    <Calendar className="w-4 h-4 text-blue-400" />
+                    <span>{new Date(row.dateOperation).toLocaleString('fr-FR')}</span>
+                </div>
             )
         },
-        { header: "Séance", accessor: "entiteNom" },
+        {
+            header: "Commercial",
+            accessor: "adminNomComplet",
+            render: (row) => (
+                <div className="flex items-center justify-start gap-3">
+                    <User className="w-4 h-4 text-purple-400" />
+                    <span className="font-bold text-zinc-100">{row.adminNomComplet}</span>
+                </div>
+            )
+        },
+        {
+            header: "Action",
+            accessor: "operation",
+            render: (row) => (
+                <div className="flex items-center justify-start gap-2">
+                    <Activity className={`w-4 h-4 ${row.operation === 'CREATION' ? 'text-green-400' :
+                        row.operation === 'SUPPRESSION' ? 'text-red-400' : 'text-blue-400'
+                    }`} />
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold tracking-tighter border ${row.operation === 'CREATION' ? 'bg-green-500/5 text-green-500 border-green-500/20' :
+                        row.operation === 'SUPPRESSION' ? 'bg-red-500/5 text-red-500 border-red-500/20' :
+                            'bg-blue-500/5 text-blue-500 border-blue-500/20'
+                    }`}>
+                        {row.operation}
+                    </span>
+                </div>
+            )
+        },
+        {
+            header: "Séance",
+            accessor: "entiteNom",
+            align: 'right',
+            render: (row) => (
+                <div className="flex items-center justify-start gap-2">
+                    <PlayCircle className="w-4 h-4 text-red-500" />
+                    <span className="font-bold text-red-500">{row.entiteNom}</span>
+                </div>
+            )
+        },
     ];
 
     return (
@@ -83,6 +118,14 @@ export default function HistoriqueSeances() {
             columns={columns}
             isLoading={isLoading}
             stats={stats}
+            pageName="HistoriqueSeances"
+            exportEndpoint="/admin/historique/seances/export/excel"
+            exportParams={{
+                search: filters.search,
+                operations: filters.operations.join(','),
+                start: filters.start || undefined,
+                end: filters.end || undefined
+            }}
             filters={
                 <>
                     <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2">
@@ -107,8 +150,8 @@ export default function HistoriqueSeances() {
                         <Search className="w-4 h-4 text-zinc-500" />
                         <input
                             type="text"
-                            placeholder="Rechercher (Commercial)..."
-                            className="bg-transparent text-sm text-white placeholder-zinc-600 focus:outline-none w-48"
+                            placeholder="Rechercher (Commercial ou Séance)..."
+                            className="bg-transparent text-sm text-white placeholder-zinc-600 focus:outline-none w-56"
                             value={filters.search || ''}
                             onChange={(e) => setFilters(p => ({ ...p, search: e.target.value }))}
                         />

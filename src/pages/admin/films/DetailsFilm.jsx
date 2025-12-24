@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Film, Calendar, Clock, Tag, Youtube, Edit, Power, PowerOff, ArrowLeft } from "lucide-react";
+import { Film, Calendar, Clock, Tag, Youtube, Edit, Power, PowerOff, ArrowLeft, RefreshCw } from "lucide-react";
+import ConfirmModal from "../../../components/admin/ConfirmModal";
 import { adminApi } from "../../../api/admin.api";
 
 export default function DetailsFilm() {
@@ -8,6 +9,7 @@ export default function DetailsFilm() {
     const navigate = useNavigate();
     const [film, setFilm] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false });
 
     useEffect(() => {
         const fetchFilm = async () => {
@@ -34,13 +36,11 @@ export default function DetailsFilm() {
     }, [id, navigate]);
 
     const handleToggleStatus = async () => {
-        if (window.confirm(`Voulez-vous vraiment ${film.actif ? 'désactiver' : 'réactiver'} ce film ?`)) {
-            try {
-                await adminApi.toggleFilmActivation(film.id, !film.actif);
-                setFilm({ ...film, actif: !film.actif });
-            } catch (error) {
-                console.error("Error toggling status:", error);
-            }
+        try {
+            await adminApi.toggleFilmActivation(film.id, !film.actif);
+            setFilm({ ...film, actif: !film.actif });
+        } catch (error) {
+            console.error("Error toggling status:", error);
         }
     };
 
@@ -66,7 +66,23 @@ export default function DetailsFilm() {
                     </div>
                 </div>
                 <div className="flex gap-3">
-                    {/* Buttons removed as per request */}
+                    <button
+                        onClick={() => setConfirmModal({ isOpen: true })}
+                        className={`p-2.5 rounded-xl transition-all flex items-center gap-2 font-medium ${film.actif
+                            ? 'bg-red-600/10 text-red-500 border border-red-600/20 hover:bg-red-600 hover:text-white'
+                            : 'bg-emerald-600/10 text-emerald-500 border border-emerald-600/20 hover:bg-emerald-600 hover:text-white'
+                        }`}
+                    >
+                        {film.actif ? <PowerOff size={18} /> : <Power size={18} />}
+                        {film.actif ? 'Désactiver' : 'Réactiver'}
+                    </button>
+                    <button
+                        onClick={() => navigate(`/admin/films/modifier/${film.id}`)}
+                        className="p-2.5 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white rounded-xl transition-all flex items-center gap-2 font-medium"
+                    >
+                        <Edit size={18} />
+                        Modifier
+                    </button>
                 </div>
             </div>
 
@@ -141,6 +157,15 @@ export default function DetailsFilm() {
                     )}
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal({ isOpen: false })}
+                onConfirm={handleToggleStatus}
+                title={film.actif ? "Désactivation du film" : "Réactivation du film"}
+                message={`Voulez-vous vraiment ${film.actif ? 'désactiver' : 'réactiver'} le film "${film.titre}" ?`}
+                type={film.actif ? "danger" : "success"}
+            />
         </div>
     );
 }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Download, Search, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
+import { Download, Search, ChevronLeft, ChevronRight, Filter, FileSpreadsheet, FileText } from 'lucide-react';
+import { downloadExcelFromBackend } from '../../../utils/exportUtils';
 
 export default function HistoriqueTable({
                                             title,
@@ -8,60 +9,25 @@ export default function HistoriqueTable({
                                             columns = [],
                                             isLoading = false,
                                             filters,
-                                            stats = []
+                                            stats = [],
+                                            exportEndpoint,  // Nouvel endpoint pour l'export backend
+                                            exportParams = {}, // Paramètres/filtres pour l'export backend
+                                            pageName = 'Export' // Nom de la page pour le fichier
                                         }) {
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
+    const itemsPerPage = 6;
 
     // Pagination Logic
-    const totalPages = Math.ceil(data.length / itemsPerPage);
+    const safeData = Array.isArray(data) ? data : [];
+    const totalPages = Math.ceil(safeData.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const paginatedData = data.slice(startIndex, startIndex + itemsPerPage);
+    const paginatedData = safeData.slice(startIndex, startIndex + itemsPerPage);
 
-    const handleExportCSV = () => {
-        if (!data || data.length === 0) return;
-
-        const headers = columns.map(col => col.header).join(',');
-        const rows = data.map(row =>
-            columns.map(col => {
-                let val = row[col.accessor];
-                // Handle nested properties if accessor is 'user.name'
-                if (col.accessor.includes('.')) {
-                    val = col.accessor.split('.').reduce((obj, key) => obj?.[key], row);
-                }
-                // Handle render function
-                if (col.render) {
-                    // This might be tricky for CSV if render returns JSX.
-                    // Best to have a specific 'csvValue' or just use raw value.
-                    // For now, simpler approach: use raw value.
-                    val = row[col.accessor] || '';
-                }
-                return `"${String(val || '').replace(/"/g, '""')}"`;
-            }).join(',')
-        );
-
-        const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join('\n');
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
-        const dateStr = `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
-        link.setAttribute("download", `${title.toLowerCase().replace(/\s+/g, '_')}_${dateStr}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
 
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* Header / Stats Section */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="space-y-6">
+            {/* Header section with Stats */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <div className="flex items-center gap-3 mb-2">
                         <div className="p-2 bg-red-600/10 rounded-lg">
@@ -72,7 +38,16 @@ export default function HistoriqueTable({
                     <p className="text-zinc-400">Consultez et gérez l'historique des activités.</p>
                 </div>
 
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3 items-center">
+                    {exportEndpoint && (
+                        <button
+                            onClick={() => downloadExcelFromBackend(exportEndpoint, exportParams, pageName)}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-green-600/10 hover:bg-green-600/20 text-green-500 rounded-xl transition-all text-sm font-medium border border-green-600/20"
+                        >
+                            <FileSpreadsheet className="w-4 h-4" />
+                            Exporter Excel
+                        </button>
+                    )}
                     {stats.map((stat, idx) => (
                         <div key={idx} className="bg-zinc-900/50 border border-zinc-800 p-3 rounded-xl flex items-center gap-3">
                             <div className={`p-2 rounded-lg ${stat.colorBg || 'bg-blue-500/10'}`}>
@@ -87,30 +62,22 @@ export default function HistoriqueTable({
                 </div>
             </div>
 
-            {/* Filters & Actions Bar */}
-            <div className="bg-zinc-900/50 border border-zinc-800 p-4 rounded-xl flex flex-col md:flex-row gap-4 justify-between items-center backdrop-blur-sm">
+            {/* Filters Bar */}
+            <div className="bg-zinc-950/40 border border-zinc-800/50 p-4 rounded-2xl flex flex-col md:flex-row gap-4 items-center backdrop-blur-xl relative z-20">
                 <div className="flex-1 w-full md:w-auto flex flex-wrap gap-3 items-center">
                     {/* Filter Slot */}
                     {filters}
                 </div>
-
-                <button
-                    onClick={handleExportCSV}
-                    className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg flex items-center gap-2 transition-all text-sm font-medium border border-zinc-700"
-                >
-                    <Download className="w-4 h-4" />
-                    Export CSV
-                </button>
             </div>
 
             {/* Table */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-xl">
+            <div className="bg-zinc-950 border border-zinc-800/50 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-xl relative z-10">
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
                         <tr className="bg-black/40 border-b border-zinc-800">
                             {columns.map((col, idx) => (
-                                <th key={idx} className="px-6 py-4 text-center text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                                <th key={idx} className="px-6 py-4 text-left text-xs font-bold text-zinc-500 uppercase tracking-widest text-[10px]">
                                     {col.header}
                                 </th>
                             ))}
@@ -134,9 +101,9 @@ export default function HistoriqueTable({
                             </tr>
                         ) : (
                             paginatedData.map((row, rowIndex) => (
-                                <tr key={rowIndex} className="hover:bg-zinc-800/30 transition-colors group">
+                                <tr key={rowIndex} className="hover:bg-zinc-800/20 transition-all duration-300 border-b border-zinc-800/30 last:border-0 group">
                                     {columns.map((col, colIndex) => (
-                                        <td key={colIndex} className="px-6 py-4 text-sm text-zinc-300 whitespace-nowrap text-center">
+                                        <td key={colIndex} className="px-6 py-4 text-sm text-zinc-300 font-medium text-left">
                                             {col.render ? col.render(row) : (
                                                 // Simple fallback for nested props
                                                 col.accessor.includes('.')
@@ -154,27 +121,27 @@ export default function HistoriqueTable({
 
                 {/* Pagination */}
                 {!isLoading && data.length > 0 && (
-                    <div className="px-6 py-4 border-t border-zinc-800 bg-black/20 flex items-center justify-between">
-                        <p className="text-sm text-zinc-500">
-                            Affichage de <span className="text-white font-medium">{startIndex + 1}</span> à <span className="text-white font-medium">{Math.min(startIndex + itemsPerPage, data.length)}</span> sur <span className="text-white font-medium">{data.length}</span>
+                    <div className="px-6 py-4 border-t border-zinc-800/50 bg-zinc-950/50 flex items-center justify-between">
+                        <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">
+                            Affichage <span className="text-white">{startIndex + 1}</span> - <span className="text-white">{Math.min(startIndex + itemsPerPage, data.length)}</span> <span className="text-zinc-700 px-2">|</span> Total <span className="text-white">{data.length}</span>
                         </p>
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                 disabled={currentPage === 1}
-                                className="p-2 rounded-lg hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-zinc-400 hover:text-white"
+                                className="p-2 rounded-xl hover:bg-zinc-800 disabled:opacity-20 disabled:cursor-not-allowed transition-all text-zinc-400 hover:text-white border border-transparent hover:border-zinc-700"
                             >
-                                <ChevronLeft className="w-4 h-4" />
+                                <ChevronLeft className="w-5 h-5" />
                             </button>
-                            <span className="text-sm font-medium text-zinc-400">
-                                Page {currentPage} sur {totalPages}
-                            </span>
+                            <div className="px-4 py-1.5 bg-zinc-900/50 rounded-lg border border-zinc-800 text-xs font-bold text-zinc-400">
+                                {currentPage} / {totalPages}
+                            </div>
                             <button
                                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                                 disabled={currentPage === totalPages}
-                                className="p-2 rounded-lg hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-zinc-400 hover:text-white"
+                                className="p-2 rounded-xl hover:bg-zinc-800 disabled:opacity-20 disabled:cursor-not-allowed transition-all text-zinc-400 hover:text-white border border-transparent hover:border-zinc-700"
                             >
-                                <ChevronRight className="w-4 h-4" />
+                                <ChevronRight className="w-5 h-5" />
                             </button>
                         </div>
                     </div>

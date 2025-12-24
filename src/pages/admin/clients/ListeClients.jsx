@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { adminApi } from '../../../api/admin.api';
 import HistoriqueTable from '../../../components/admin/shared/HistoriqueTable';
-import { UserPlus, Search, Calendar } from 'lucide-react';
+import { UserPlus, Search, Calendar, User, Mail, Phone } from 'lucide-react';
 
 export default function ListeClients() {
     const [data, setData] = useState([]);
@@ -17,8 +17,8 @@ export default function ListeClients() {
         try {
             const params = {};
             if (filters.search) params.search = filters.search;
-            if (filters.start) params.start = new Date(filters.start).toISOString();
-            if (filters.end) params.end = new Date(filters.end).toISOString();
+            if (filters.start) params.start = filters.start;
+            if (filters.end) params.end = filters.end;
 
             const response = await adminApi.getFilteredClients(params);
             setData(response.data);
@@ -35,11 +35,47 @@ export default function ListeClients() {
     }, [filters]);
 
     const columns = [
-        { header: "Nom", accessor: "nom" },
-        { header: "Prénom", accessor: "prenom" },
-        { header: "Email", accessor: "email" },
-        { header: "Téléphone", accessor: "numeroTelephone" },
-        { header: "Inscrit le", accessor: "createdAt", render: (row) => new Date(row.createdAt).toLocaleDateString('fr-FR') },
+        {
+            header: "Client",
+            accessor: "nom",
+            render: (row) => (
+                <div className="flex items-center justify-start gap-3">
+                    <User className="w-4 h-4 text-red-500" />
+                    <span className="font-bold text-red-500">{row.nom} {row.prenom}</span>
+                </div>
+            )
+        },
+        {
+            header: "Email",
+            accessor: "email",
+            render: (row) => (
+                <div className="flex items-center justify-start gap-3">
+                    <Mail className="w-4 h-4 text-purple-400" />
+                    <span className="text-zinc-300">{row.email}</span>
+                </div>
+            )
+        },
+        {
+            header: "Téléphone",
+            accessor: "numeroTelephone",
+            render: (row) => (
+                <div className="flex items-center justify-start gap-3">
+                    <Phone className="w-4 h-4 text-blue-400" />
+                    <span className="text-zinc-300">{row.numeroTelephone || '---'}</span>
+                </div>
+            )
+        },
+        {
+            header: "Inscrit le",
+            accessor: "createdAt",
+            align: 'right',
+            render: (row) => (
+                <div className="flex items-center justify-start gap-3">
+                    <Calendar className="w-4 h-4 text-zinc-500" />
+                    <span>{new Date(row.createdAt).toLocaleDateString('fr-FR')}</span>
+                </div>
+            )
+        },
     ];
 
     return (
@@ -52,6 +88,13 @@ export default function ListeClients() {
             stats={[
                 { label: "Total Clients", value: data.length, icon: UserPlus, colorBg: "bg-indigo-500/10", colorText: "text-indigo-500" }
             ]}
+            pageName="ListeClients"
+            exportEndpoint="/admin/clients/export/excel"
+            exportParams={{
+                search: filters.search,
+                start: filters.start || undefined,
+                end: filters.end || undefined
+            }}
             filters={
                 <>
                     <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2">

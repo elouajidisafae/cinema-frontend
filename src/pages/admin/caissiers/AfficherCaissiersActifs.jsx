@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Plus, Search, CreditCard, Archive } from "lucide-react";
+import ConfirmModal from "../../../components/admin/ConfirmModal";
 import { useNavigate } from "react-router-dom";
 import { adminApi } from "../../../api/admin.api";
 import UserTable from "../../../components/admin/shared/UserTable";
@@ -9,6 +10,7 @@ export default function AfficherCaissiersActifs() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false, user: null });
 
     const fetchUsers = async () => {
         setLoading(true);
@@ -26,10 +28,10 @@ export default function AfficherCaissiersActifs() {
         fetchUsers();
     }, []);
 
-    const handleToggleStatus = async (user) => {
-        if (window.confirm(`Voulez-vous vraiment désactiver ce caissier ?`)) {
+    const handleToggleStatus = async () => {
+        if (confirmModal.user) {
             try {
-                await adminApi.toggleUserActivation(user.id, !user.actif);
+                await adminApi.toggleUserActivation(confirmModal.user.id, !confirmModal.user.actif);
                 fetchUsers();
             } catch (error) {
                 console.error("Error toggling status:", error);
@@ -96,11 +98,20 @@ export default function AfficherCaissiersActifs() {
                     <UserTable
                         users={filteredUsers}
                         onEdit={(user) => navigate(`/admin/caissiers/modifier/${user.id}`)}
-                        onToggleStatus={handleToggleStatus}
+                        onToggleStatus={(user) => setConfirmModal({ isOpen: true, user })}
                         onViewDetails={(user) => navigate(`/admin/caissiers/details/${user.id}`)}
                     />
                 )}
             </div>
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal({ isOpen: false, user: null })}
+                onConfirm={handleToggleStatus}
+                title="Désactivation du caissier"
+                message={`Êtes-vous sûr de vouloir désactiver le compte de ${confirmModal.user?.prenom} ${confirmModal.user?.nom} ? Il ne pourra plus se connecter.`}
+                type="danger"
+            />
         </div>
     );
 }

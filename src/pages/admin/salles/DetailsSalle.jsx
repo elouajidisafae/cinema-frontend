@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Theater, Users, Tag, Edit, Power, PowerOff, ArrowLeft } from "lucide-react";
+import { Theater, Users, Tag, Edit, Power, PowerOff, ArrowLeft, RefreshCw, Grid3x3, Armchair } from "lucide-react";
+import ConfirmModal from "../../../components/admin/ConfirmModal";
 import { adminApi } from "../../../api/admin.api";
 
 export default function DetailsSalle() {
@@ -8,6 +9,7 @@ export default function DetailsSalle() {
     const navigate = useNavigate();
     const [salle, setSalle] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false });
 
     useEffect(() => {
         const fetchSalle = async () => {
@@ -34,13 +36,11 @@ export default function DetailsSalle() {
     }, [id, navigate]);
 
     const handleToggleStatus = async () => {
-        if (window.confirm(`Voulez-vous vraiment ${salle.actif ? 'désactiver' : 'réactiver'} cette salle ?`)) {
-            try {
-                await adminApi.toggleSalleActivation(salle.id, !salle.actif);
-                setSalle({ ...salle, actif: !salle.actif });
-            } catch (error) {
-                console.error("Error toggling status:", error);
-            }
+        try {
+            await adminApi.toggleSalleActivation(salle.id, !salle.actif);
+            setSalle({ ...salle, actif: !salle.actif });
+        } catch (error) {
+            console.error("Error toggling status:", error);
         }
     };
 
@@ -66,7 +66,23 @@ export default function DetailsSalle() {
                     </div>
                 </div>
                 <div className="flex gap-3">
-                    {/* Buttons removed as per request */}
+                    <button
+                        onClick={() => setConfirmModal({ isOpen: true })}
+                        className={`p-2.5 rounded-xl transition-all flex items-center gap-2 font-medium ${salle.actif
+                            ? 'bg-red-600/10 text-red-500 border border-red-600/20 hover:bg-red-600 hover:text-white'
+                            : 'bg-emerald-600/10 text-emerald-500 border border-emerald-600/20 hover:bg-emerald-600 hover:text-white'
+                        }`}
+                    >
+                        {salle.actif ? <PowerOff size={18} /> : <Power size={18} />}
+                        {salle.actif ? 'Désactiver' : 'Réactiver'}
+                    </button>
+                    <button
+                        onClick={() => navigate(`/admin/salles/modifier/${salle.id}`)}
+                        className="p-2.5 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white rounded-xl transition-all flex items-center gap-2 font-medium"
+                    >
+                        <Edit size={18} />
+                        Modifier
+                    </button>
                 </div>
             </div>
 
@@ -105,21 +121,42 @@ export default function DetailsSalle() {
                     </div>
                 </div>
 
-                {/* Statistiques (placeholder) */}
-                <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
-                    <h3 className="text-lg font-bold text-white mb-4">Statistiques</h3>
-                    <div className="space-y-4">
-                        <div className="p-4 bg-zinc-950/50 rounded-xl">
-                            <p className="text-sm text-zinc-500 mb-1">Séances programmées</p>
-                            <p className="text-2xl font-bold text-white">-</p>
-                        </div>
-                        <div className="p-4 bg-zinc-950/50 rounded-xl">
-                            <p className="text-sm text-zinc-500 mb-1">Taux d'occupation moyen</p>
-                            <p className="text-2xl font-bold text-white">-</p>
+                {/* Statistiques & Configuration */}
+                <div className="space-y-6">
+                    {/* Configuration Sièges */}
+                    <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
+                        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                            <Grid3x3 className="w-5 h-5 text-red-500" />
+                            Configuration des Sièges
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="p-4 bg-zinc-950/50 rounded-xl">
+                                <div className="flex items-center gap-2 text-zinc-500 text-sm mb-1">
+                                    <Grid3x3 className="w-4 h-4" />
+                                    Nombre de Rangées
+                                </div>
+                                <p className="text-2xl font-bold text-white">{salle.nombreRangees}</p>
+                            </div>
+                            <div className="p-4 bg-zinc-950/50 rounded-xl">
+                                <div className="flex items-center gap-2 text-zinc-500 text-sm mb-1">
+                                    <Armchair className="w-4 h-4" />
+                                    Sièges par Rangée
+                                </div>
+                                <p className="text-2xl font-bold text-white">{salle.siegesParRangee}</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal({ isOpen: false })}
+                onConfirm={handleToggleStatus}
+                title={salle.actif ? "Désactivation de la salle" : "Réactivation de la salle"}
+                message={`Voulez-vous vraiment ${salle.actif ? 'désactiver' : 'réactiver'} la salle "${salle.nom}" ?`}
+                type={salle.actif ? "danger" : "success"}
+            />
         </div>
     );
 }

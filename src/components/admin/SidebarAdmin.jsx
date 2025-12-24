@@ -1,4 +1,4 @@
-import { ChevronDown, Film, LogOut, Menu, X, LayoutDashboard, Users, CreditCard, Theater, History, Calendar, UserPlus, Ticket, User } from "lucide-react";
+import { ChevronDown, Film, LogOut, Menu, X, LayoutDashboard, Users, CreditCard, Theater, History, Calendar, UserPlus, Ticket, User, Tag } from "lucide-react";
 
 export default function SidebarAdmin({
                                          sidebarOpen,
@@ -11,6 +11,7 @@ export default function SidebarAdmin({
                                      }) {
     const menuItems = [
         { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+        { id: "offres", label: "Gestion des Offres", icon: Tag },
         {
             id: "users",
             label: "Gestion des utilisateurs",
@@ -31,6 +32,7 @@ export default function SidebarAdmin({
                 { id: "hist-salles", label: "Historique Salles", icon: Theater },
                 { id: "hist-films", label: "Historique Films", icon: Film },
                 { id: "hist-seances", label: "Historique Séances", icon: Calendar },
+                { id: "hist-offres", label: "Historique Offres", icon: Tag },
                 { id: "hist-clients", label: "Clients Inscrits", icon: UserPlus },
                 { id: "hist-reservations", label: "Historique Réservations", icon: Ticket }
             ]
@@ -74,7 +76,7 @@ export default function SidebarAdmin({
             {/* News Feed */}
             {sidebarOpen && (
                 <div className="px-6 py-4">
-                    <span className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold">News Feed</span>
+                    <span className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold"> </span>
                 </div>
             )}
 

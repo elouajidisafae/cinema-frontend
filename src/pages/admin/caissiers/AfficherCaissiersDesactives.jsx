@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Archive, Search, ArrowLeft } from "lucide-react";
+import ConfirmModal from "../../../components/admin/ConfirmModal";
 import { useNavigate } from "react-router-dom";
 import { adminApi } from "../../../api/admin.api";
 import UserTable from "../../../components/admin/shared/UserTable";
@@ -9,6 +10,7 @@ export default function AfficherCaissiersDesactives() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false, user: null });
 
     const fetchUsers = async () => {
         setLoading(true);
@@ -26,10 +28,10 @@ export default function AfficherCaissiersDesactives() {
         fetchUsers();
     }, []);
 
-    const handleToggleStatus = async (user) => {
-        if (window.confirm(`Voulez-vous réactiver ce caissier ?`)) {
+    const handleToggleStatus = async () => {
+        if (confirmModal.user) {
             try {
-                await adminApi.toggleUserActivation(user.id, true);
+                await adminApi.toggleUserActivation(confirmModal.user.id, true);
                 fetchUsers();
             } catch (error) {
                 console.error("Error activating user:", error);
@@ -86,11 +88,20 @@ export default function AfficherCaissiersDesactives() {
                     <UserTable
                         users={filteredUsers}
                         isArchiveView={true}
-                        onToggleStatus={handleToggleStatus}
+                        onToggleStatus={(user) => setConfirmModal({ isOpen: true, user })}
                         onViewDetails={(user) => navigate(`/admin/caissiers/details/${user.id}`)}
                     />
                 )}
             </div>
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal({ isOpen: false, user: null })}
+                onConfirm={handleToggleStatus}
+                title="Réactivation du caissier"
+                message={`Voulez-vous vraiment réactiver le compte de ${confirmModal.user?.prenom} ${confirmModal.user?.nom} ?`}
+                type="success"
+            />
         </div>
     );
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Search, Theater, RotateCcw, ArrowLeft } from "lucide-react";
+import ConfirmModal from "../../../components/admin/ConfirmModal";
 import { useNavigate } from "react-router-dom";
 import { adminApi } from "../../../api/admin.api";
 
@@ -8,6 +9,7 @@ export default function AfficherSallesDesactivees() {
     const [salles, setSalles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false, salle: null });
 
     const fetchSalles = async () => {
         setLoading(true);
@@ -25,10 +27,10 @@ export default function AfficherSallesDesactivees() {
         fetchSalles();
     }, []);
 
-    const handleReactivate = async (salle) => {
-        if (window.confirm(`Voulez-vous vraiment réactiver la salle "${salle.nom}" ?`)) {
+    const handleReactivate = async () => {
+        if (confirmModal.salle) {
             try {
-                await adminApi.toggleSalleActivation(salle.id, true);
+                await adminApi.toggleSalleActivation(confirmModal.salle.id, true);
                 fetchSalles();
             } catch (error) {
                 console.error("Error reactivating salle:", error);
@@ -114,7 +116,7 @@ export default function AfficherSallesDesactivees() {
                                                 {salle.type}
                                             </span>
                                     </td>
-                                    <td className="p-4">
+                                    <td className="p-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
                                             <button
                                                 onClick={() => navigate(`/admin/salles/details/${salle.id}`)}
@@ -123,7 +125,7 @@ export default function AfficherSallesDesactivees() {
                                                 Détails
                                             </button>
                                             <button
-                                                onClick={() => handleReactivate(salle)}
+                                                onClick={() => setConfirmModal({ isOpen: true, salle: salle })}
                                                 className="px-3 py-1.5 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 rounded-lg transition-all text-sm flex items-center gap-1"
                                             >
                                                 <RotateCcw className="w-3.5 h-3.5" />
@@ -138,6 +140,15 @@ export default function AfficherSallesDesactivees() {
                     </div>
                 )}
             </div>
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal({ isOpen: false, salle: null })}
+                onConfirm={handleReactivate}
+                title="Réactivation de la salle"
+                message={`Voulez-vous vraiment réactiver la salle "${confirmModal.salle?.nom}" ?`}
+                type="success"
+            />
         </div>
     );
 }

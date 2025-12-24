@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Search, Film, RotateCcw, ArrowLeft } from "lucide-react";
+import ConfirmModal from "../../../components/admin/ConfirmModal";
 import { useNavigate } from "react-router-dom";
 import { adminApi } from "../../../api/admin.api";
 
@@ -8,6 +9,7 @@ export default function AfficherFilmsDesactives() {
     const [films, setFilms] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false, film: null });
 
     const fetchFilms = async () => {
         setLoading(true);
@@ -25,10 +27,10 @@ export default function AfficherFilmsDesactives() {
         fetchFilms();
     }, []);
 
-    const handleReactivate = async (film) => {
-        if (window.confirm(`Voulez-vous vraiment réactiver le film "${film.titre}" ?`)) {
+    const handleReactivate = async () => {
+        if (confirmModal.film) {
             try {
-                await adminApi.toggleFilmActivation(film.id, true);
+                await adminApi.toggleFilmActivation(confirmModal.film.id, true);
                 fetchFilms();
             } catch (error) {
                 console.error("Error reactivating film:", error);
@@ -137,7 +139,7 @@ export default function AfficherFilmsDesactives() {
                                                 Détails
                                             </button>
                                             <button
-                                                onClick={() => handleReactivate(film)}
+                                                onClick={() => setConfirmModal({ isOpen: true, film: film })}
                                                 className="px-3 py-1.5 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 rounded-lg transition-all text-sm flex items-center gap-1"
                                             >
                                                 <RotateCcw className="w-3.5 h-3.5" />
@@ -152,6 +154,15 @@ export default function AfficherFilmsDesactives() {
                     </div>
                 )}
             </div>
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal({ isOpen: false, film: null })}
+                onConfirm={handleReactivate}
+                title="Réactivation du film"
+                message={`Voulez-vous vraiment réactiver le film "${confirmModal.film?.titre}" ?`}
+                type="success"
+            />
         </div>
     );
 }

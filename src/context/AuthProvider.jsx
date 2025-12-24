@@ -26,9 +26,10 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = () => {
+        const isClient = user?.role === "CLIENT";
         localStorage.clear();
         setUser(null);
-        window.location.href = "/login/internal"; // ou /login/client selon le rôle
+        window.location.href = isClient ? "/" : "/login/internal";
     };
 
     const hasRole = (roles) => {

@@ -66,7 +66,7 @@ export default function LoginInternal() {
                                 <Film className="w-5 h-5 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-xl font-black text-white tracking-tight">CINEMANA</h1>
+                                <h1 className="text-xl font-black text-white tracking-tight">CINÉMANA</h1>
                                 <p className="text-[9px] text-gray-500 uppercase tracking-widest font-semibold">Espace Personnel</p>
                             </div>
                         </div>
@@ -228,7 +228,7 @@ export default function LoginInternal() {
                 {/* Footer */}
                 <footer className="px-8 py-3">
                     <p className="text-center text-gray-700 text-[10px]">
-                        © 2024 Cinemana - Accès Personnel Interne.
+                        © 2025 CINÉMANA - Accès Personnel Interne.
                     </p>
                 </footer>
             </div>

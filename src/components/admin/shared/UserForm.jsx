@@ -9,7 +9,6 @@ export default function UserForm({ user, role, onSubmit, onCancel, isSubmitting 
         cin: "",
         dateNaissance: "",
         dateEmbauche: "",
-        motDePasse: "",
         role: role || "CAISSIER"
     });
 
@@ -22,7 +21,6 @@ export default function UserForm({ user, role, onSubmit, onCancel, isSubmitting 
                 cin: user.cin || "",
                 dateNaissance: user.dateNaissance || "",
                 dateEmbauche: user.dateEmbauche || "",
-                motDePasse: "",
                 role: user.role || role
             });
         }
@@ -35,11 +33,7 @@ export default function UserForm({ user, role, onSubmit, onCancel, isSubmitting 
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const payload = { ...formData };
-        if (!payload.motDePasse) {
-            delete payload.motDePasse;
-        }
-        onSubmit(payload);
+        onSubmit(formData);
     };
 
     return (
@@ -133,25 +127,6 @@ export default function UserForm({ user, role, onSubmit, onCancel, isSubmitting 
                 </div>
             </div>
 
-            {user && (
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-zinc-400">
-                        Nouveau mot de passe (optionnel)
-                    </label>
-                    <div className="relative group">
-                        <Lock className="absolute left-3 top-3 w-4 h-4 text-zinc-600 group-focus-within:text-white transition-colors" />
-                        <input
-                            type="password"
-                            name="motDePasse"
-                            value={formData.motDePasse}
-                            onChange={handleChange}
-                            minLength={8}
-                            className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-red-600/50 focus:ring-1 focus:ring-red-600/50 transition-all placeholder:text-zinc-700"
-                            placeholder="Laisser vide pour conserver"
-                        />
-                    </div>
-                </div>
-            )}
 
             <div className="pt-6 flex gap-3 justify-end border-t border-zinc-800/50 mt-8">
                 <button

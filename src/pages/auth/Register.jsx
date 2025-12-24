@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Film, Mail, Lock, User, Phone, Calendar, Eye, EyeOff, Check, ArrowRight, Sparkles, Ticket, Clock } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Film, Mail, Lock, User, Phone, Calendar, Eye, EyeOff, Check, ArrowRight, Sparkles, Ticket, Clock, X } from "lucide-react";
 
 export default function CinemanaRegister() {
     const [form, setForm] = useState({
@@ -14,6 +15,7 @@ export default function CinemanaRegister() {
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [acceptTerms, setAcceptTerms] = useState(false);
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -43,7 +45,7 @@ export default function CinemanaRegister() {
             console.log("Inscription réussie:", data);
 
             // Redirection directe vers la page de connexion
-            window.location.href = "/login/client";
+            navigate("/login/client");
 
         } catch (err) {
             console.error("Erreur inscription:", err);
@@ -69,8 +71,8 @@ export default function CinemanaRegister() {
             <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-full opacity-20">
                     <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-red-600 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
-                    <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-red-800 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
-                    <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-red-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{animationDelay: '4s'}}></div>
+                    <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-red-800 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+                    <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-red-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{ animationDelay: '4s' }}></div>
                 </div>
             </div>
 
@@ -83,15 +85,17 @@ export default function CinemanaRegister() {
                                 <Film className="w-5 h-5 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-xl font-black text-white tracking-tight">CINEMANA</h1>
+                                <h1 className="text-xl font-black text-white tracking-tight">CINÉMANA</h1>
                                 <p className="text-[9px] text-gray-500 uppercase tracking-widest font-semibold">RÉSERVATION EN LIGNE</p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-red-600/10 border border-red-600/30 rounded-full">
-                            <Sparkles className="w-3 h-3 text-red-500" />
-                            <span className="text-[10px] text-red-500 font-bold uppercase tracking-wider">Billets PDF</span>
-                        </div>
+                        <Link to="/" className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 border border-zinc-800 hover:border-red-600 hover:text-red-500 rounded-full transition-all group">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 group-hover:text-white transition-colors">Retour au site</span>
+                            <div className="w-5 h-5 rounded-full bg-zinc-800 group-hover:bg-red-600 flex items-center justify-center transition-colors">
+                                <X className="w-3 h-3 text-white" />
+                            </div>
+                        </Link>
                     </div>
                 </header>
 
@@ -253,8 +257,7 @@ export default function CinemanaRegister() {
                                                     {[1, 2, 3].map((level) => (
                                                         <div
                                                             key={level}
-                                                            className={`h-1 flex-1 rounded-full transition-all ${
-                                                                level <= strength.strength ? strength.color : 'bg-zinc-800'
+                                                            className={`h-1 flex-1 rounded-full transition-all ${level <= strength.strength ? strength.color : 'bg-zinc-800'
                                                             }`}
                                                         ></div>
                                                     ))}
@@ -264,30 +267,37 @@ export default function CinemanaRegister() {
                                     </div>
 
                                     {/* Téléphone & Date */}
+                                    {/* Téléphone & Date */}
                                     <div className="grid grid-cols-2 gap-3">
-                                        <div className="relative">
-                                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
-                                            <input
-                                                type="tel"
-                                                name="numeroTelephone"
-                                                value={form.numeroTelephone}
-                                                onChange={handleChange}
-                                                required
-                                                className="w-full bg-black border border-zinc-800 rounded-lg pl-10 pr-3 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-red-600 transition-all text-xs"
-                                                placeholder="Téléphone"
-                                            />
+                                        <div>
+                                            <label className="block text-gray-400 text-xs mb-1.5 font-medium ml-1">Téléphone</label>
+                                            <div className="relative">
+                                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
+                                                <input
+                                                    type="tel"
+                                                    name="numeroTelephone"
+                                                    value={form.numeroTelephone}
+                                                    onChange={handleChange}
+                                                    required
+                                                    className="w-full bg-black border border-zinc-800 rounded-lg pl-10 pr-3 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-red-600 transition-all text-xs"
+                                                    placeholder="06 12 34 56 78"
+                                                />
+                                            </div>
                                         </div>
 
-                                        <div className="relative">
-                                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
-                                            <input
-                                                type="date"
-                                                name="dateNaissance"
-                                                value={form.dateNaissance}
-                                                onChange={handleChange}
-                                                required
-                                                className="w-full bg-black border border-zinc-800 rounded-lg pl-10 pr-3 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-red-600 transition-all text-xs"
-                                            />
+                                        <div>
+                                            <label className="block text-gray-400 text-xs mb-1.5 font-medium ml-1">Date de naissance</label>
+                                            <div className="relative">
+                                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
+                                                <input
+                                                    type="date"
+                                                    name="dateNaissance"
+                                                    value={form.dateNaissance}
+                                                    onChange={handleChange}
+                                                    required
+                                                    className="w-full bg-black border border-zinc-800 rounded-lg pl-10 pr-3 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-red-600 transition-all text-xs"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
 
@@ -307,11 +317,11 @@ export default function CinemanaRegister() {
                                         </div>
                                         <span className="text-[10px] text-gray-500 leading-relaxed">
                                             J'accepte les{" "}
-                                            <a href="#" className="text-blue-500 hover:text-blue-400">
+                                            <a href="#" className="text-zinc-400 hover:text-white transition-colors">
                                                 conditions d'utilisation
                                             </a>{" "}
                                             et la{" "}
-                                            <a href="#" className="text-blue-500 hover:text-blue-400">
+                                            <a href="#" className="text-zinc-400 hover:text-white transition-colors">
                                                 politique de confidentialité
                                             </a>
                                         </span>
@@ -347,12 +357,12 @@ export default function CinemanaRegister() {
                                 </div>
 
                                 {/* Login Link */}
-                                <div className="text-center">
-                                    <p className="text-gray-500 text-xs">
-                                        Vous avez déjà un compte ?{" "}
-                                        <a href="/login/client" className="text-blue-500 hover:text-blue-400 font-semibold">
+                                <div className="text-center mt-6">
+                                    <p className="text-gray-500 text-xs flex items-center justify-center gap-1">
+                                        Vous avez déjà un compte ?
+                                        <Link to="/login/client" className="text-red-600 hover:text-red-500 font-medium text-xs hover:underline transition-all ml-1">
                                             Se connecter
-                                        </a>
+                                        </Link>
                                     </p>
                                 </div>
                             </div>
@@ -369,7 +379,7 @@ export default function CinemanaRegister() {
                 {/* Footer */}
                 <footer className="px-8 py-3">
                     <p className="text-center text-gray-700 text-[10px]">
-                        © 2024 Cinemana - Système de réservation en ligne. Propulsé par Spring Boot.
+                        © 2025 CINÉMANA - Système de réservation en ligne. Propulsé par Spring Boot.
                     </p>
                 </footer>
             </div>

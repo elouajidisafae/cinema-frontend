@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Plus, Search, Film, Archive } from "lucide-react";
+import ConfirmModal from "../../../components/admin/ConfirmModal";
 import { useNavigate } from "react-router-dom";
 import { adminApi } from "../../../api/admin.api";
 
@@ -8,6 +9,8 @@ export default function AfficherFilmsActifs() {
     const [films, setFilms] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false, film: null });
+    const [error, setError] = useState(null);
 
     const fetchFilms = async () => {
         setLoading(true);
@@ -25,13 +28,20 @@ export default function AfficherFilmsActifs() {
         fetchFilms();
     }, []);
 
-    const handleToggleStatus = async (film) => {
-        if (window.confirm(`Voulez-vous vraiment désactiver le film "${film.titre}" ?`)) {
+    const handleToggleStatus = async () => {
+        if (confirmModal.film) {
+            setError(null);
             try {
-                await adminApi.toggleFilmActivation(film.id, false);
+                await adminApi.toggleFilmActivation(confirmModal.film.id, false);
+                setConfirmModal({ isOpen: false, film: null });
                 fetchFilms();
             } catch (error) {
                 console.error("Error toggling status:", error);
+                const errorMessage = error.response?.data?.message || error.response?.data?.error || "Une erreur est survenue lors de la désactivation.";
+                setError(errorMessage);
+                setConfirmModal({ isOpen: false, film: null });
+                // Effacer l'erreur après 5 secondes
+                setTimeout(() => setError(null), 5000);
             }
         }
     };
@@ -71,6 +81,14 @@ export default function AfficherFilmsActifs() {
                     </button>
                 </div>
             </div>
+
+            {/* Error Message */}
+            {error && (
+                <div className="mb-6 p-4 bg-red-600/10 border border-red-600/20 rounded-xl flex items-center gap-3 text-red-500 animate-in fade-in slide-in-from-top-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"></div>
+                    <p className="text-sm font-medium">{error}</p>
+                </div>
+            )}
 
             {/* Search Bar */}
             <div className="mb-6">
@@ -139,7 +157,7 @@ export default function AfficherFilmsActifs() {
                                     <td className="p-4 text-zinc-400">
                                         {new Date(film.dateSortie).toLocaleDateString('fr-FR')}
                                     </td>
-                                    <td className="p-4">
+                                    <td className="p-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
                                             <button
                                                 onClick={() => navigate(`/admin/films/details/${film.id}`)}
@@ -154,7 +172,7 @@ export default function AfficherFilmsActifs() {
                                                 Modifier
                                             </button>
                                             <button
-                                                onClick={() => handleToggleStatus(film)}
+                                                onClick={() => setConfirmModal({ isOpen: true, film: film })}
                                                 className="px-3 py-1.5 bg-red-600/10 hover:bg-red-600/20 text-red-400 rounded-lg transition-all text-sm"
                                             >
                                                 Désactiver
@@ -168,6 +186,15 @@ export default function AfficherFilmsActifs() {
                     </div>
                 )}
             </div>
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal({ isOpen: false, film: null })}
+                onConfirm={handleToggleStatus}
+                title="Désactivation du film"
+                message={`Êtes-vous sûr de vouloir désactiver le film "${confirmModal.film?.titre}" ? Il ne sera plus visible par les clients.`}
+                type="danger"
+            />
         </div>
     );
 }
