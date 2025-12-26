@@ -304,38 +304,57 @@ export default function FilmDetail() {
                                                 {date}
                                             </h4>
                                             <div className="grid grid-cols-1 gap-4">
-                                                {sessionList.map(session => (
-                                                    <button
-                                                        key={session.id}
-                                                        onClick={() => handleReserve(session.id)}
-                                                        className="group relative bg-white/5 border border-white/10 hover:border-red-600/50 rounded-2xl p-4 text-left transition-all hover:bg-white/10 hover:shadow-[0_10px_30px_rgba(220,38,38,0.1)]"
-                                                    >
-                                                        <div className="flex justify-between items-center mb-2">
-                                                            <span className="text-2xl font-black text-white group-hover:text-red-500 transition-colors">
-                                                                {new Date(session.dateHeure).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                                                            </span>
-                                                            <span className="text-[10px] font-black bg-red-600 text-white px-2 py-1 rounded-md uppercase tracking-wider">
-                                                                {session.categorieNom || "2D"}
-                                                            </span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2 text-sm text-zinc-400 mb-3 font-medium">
-                                                            <MapPin size={14} className="text-red-500" /> {session.salleNom}
-                                                        </div>
-                                                        <div className="flex items-center justify-between">
-                                                            <div className="flex items-center gap-2">
-                                                                <div className="flex gap-1">
-                                                                    {[1, 2, 3, 4, 5].map(i => (
-                                                                        <div key={i} className={`w-3 h-1 rounded-full ${i <= 3 ? 'bg-red-600' : 'bg-zinc-800'}`}></div>
-                                                                    ))}
+                                                {sessionList.map(session => {
+                                                    const sessionDate = new Date(session.dateHeure);
+                                                    const now = new Date();
+                                                    const diffInHours = (sessionDate - now) / (1000 * 60 * 60);
+                                                    const isBookable = diffInHours >= 3;
+
+                                                    return (
+                                                        <button
+                                                            key={session.id}
+                                                            onClick={() => isBookable && handleReserve(session.id)}
+                                                            disabled={!isBookable}
+                                                            className={`group relative w-full border rounded-2xl p-4 text-left transition-all 
+                                                                ${isBookable
+                                                                ? 'bg-white/5 border-white/10 hover:border-red-600/50 hover:bg-white/10 hover:shadow-[0_10px_30px_rgba(220,38,38,0.1)] cursor-pointer'
+                                                                : 'bg-zinc-900/50 border-white/5 opacity-60 cursor-not-allowed'}`}
+                                                        >
+                                                            <div className="flex justify-between items-center mb-2">
+                                                                <span className={`text-2xl font-black transition-colors ${isBookable ? 'text-white group-hover:text-red-500' : 'text-zinc-500'}`}>
+                                                                    {sessionDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                                                </span>
+                                                                <span className={`text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider ${isBookable ? 'bg-red-600 text-white' : 'bg-zinc-700 text-zinc-400'}`}>
+                                                                    {session.categorieNom || "2D"}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2 text-sm text-zinc-400 mb-3 font-medium">
+                                                                <MapPin size={14} className={isBookable ? "text-red-500" : "text-zinc-600"} /> {session.salleNom}
+                                                            </div>
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="flex items-center gap-2">
+                                                                    {isBookable ? (
+                                                                        <>
+                                                                            <div className="flex gap-1">
+                                                                                {[1, 2, 3, 4, 5].map(i => (
+                                                                                    <div key={i} className={`w-3 h-1 rounded-full ${i <= 3 ? 'bg-red-600' : 'bg-zinc-800'}`}></div>
+                                                                                ))}
+                                                                            </div>
+                                                                            <span className="text-[10px] text-zinc-500 font-black uppercase">{session.placesDisponibles} places</span>
+                                                                        </>
+                                                                    ) : (
+                                                                        <span className="text-xs font-bold text-red-500 uppercase tracking-wider">Réservation en ligne fermée</span>
+                                                                    )}
                                                                 </div>
-                                                                <span className="text-[10px] text-zinc-500 font-black uppercase">{session.placesDisponibles} places</span>
+                                                                {isBookable && (
+                                                                    <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
+                                                                        <ArrowLeft className="rotate-180 text-white" size={16} />
+                                                                    </div>
+                                                                )}
                                                             </div>
-                                                            <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
-                                                                <ArrowLeft className="rotate-180 text-white" size={16} />
-                                                            </div>
-                                                        </div>
-                                                    </button>
-                                                ))}
+                                                        </button>
+                                                    );
+                                                })}
                                             </div>
                                         </div>
                                     ))}

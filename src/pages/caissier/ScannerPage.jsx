@@ -289,15 +289,35 @@ export default function ScannerPage() {
                                         <div className="flex flex-col gap-6">
                                             {/* CARD 1: INFO CLIENT */}
                                             <div className="bg-zinc-950/50 p-5 rounded-3xl border border-zinc-800 flex flex-col gap-4">
-                                                <div className="flex items-center gap-2 border-b border-zinc-800 pb-2">
-                                                    <div className="w-2 h-2 rounded-full bg-zinc-500"></div>
-                                                    <h4 className="text-zinc-400 text-sm font-bold uppercase tracking-widest">Info Client</h4>
+                                                <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-2 h-2 rounded-full bg-zinc-500"></div>
+                                                        <h4 className="text-zinc-400 text-sm font-bold uppercase tracking-widest">Info Client</h4>
+                                                    </div>
+                                                    {/* Statut Badge */}
+                                                    <div className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${verificationResult.statutActuel === 'EN_ATTENTE' ? 'bg-orange-500/20 text-orange-500 border border-orange-500/30' :
+                                                        verificationResult.statutActuel === 'CONFIRMEE_CLIENT' ? 'bg-blue-500/20 text-blue-500 border border-blue-500/30' :
+                                                            verificationResult.statutActuel === 'VALIDEE' ? 'bg-green-500/20 text-green-500 border border-green-500/30' :
+                                                                'bg-red-500/20 text-red-500 border border-red-500/30'
+                                                    }`}>
+                                                        {verificationResult.statutActuel === 'EN_ATTENTE' ? 'Non confirmé' :
+                                                            verificationResult.statutActuel === 'CONFIRMEE_CLIENT' ? 'Confirmé Client' :
+                                                                verificationResult.statutActuel}
+                                                    </div>
                                                 </div>
 
                                                 <div className="bg-black p-4 rounded-2xl border border-zinc-800/80">
                                                     <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider mb-1">Client</p>
                                                     <p className="text-zinc-200 font-bold text-2xl truncate leading-tight">{verificationResult.client}</p>
                                                 </div>
+
+                                                {/* OFFRE (if present) */}
+                                                {verificationResult.offre && (
+                                                    <div className="bg-red-600/10 p-4 rounded-2xl border border-red-600/30">
+                                                        <p className="text-red-500 text-[10px] uppercase font-bold tracking-wider mb-1">Offre Appliquée</p>
+                                                        <p className="text-white font-bold text-lg leading-tight">{verificationResult.offre.titre}</p>
+                                                    </div>
+                                                )}
 
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="bg-black p-4 rounded-2xl border border-zinc-800/80">
@@ -311,11 +331,11 @@ export default function ScannerPage() {
                                                 </div>
                                             </div>
 
-                                            {/* CARD 2: INFO FILM */}
+                                            {/* CARD 2: INFO FILM & SEANCE */}
                                             <div className="bg-zinc-950/50 p-5 rounded-3xl border border-zinc-800 flex flex-col gap-4">
                                                 <div className="flex items-center gap-2 border-b border-zinc-800 pb-2">
                                                     <div className="w-2 h-2 rounded-full bg-red-600"></div>
-                                                    <h4 className="text-zinc-400 text-sm font-bold uppercase tracking-widest">Info Film</h4>
+                                                    <h4 className="text-zinc-400 text-sm font-bold uppercase tracking-widest">Info Film & Séance</h4>
                                                 </div>
 
                                                 <div className="bg-black p-4 rounded-2xl border border-zinc-800/80">
@@ -325,13 +345,33 @@ export default function ScannerPage() {
 
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="bg-black p-4 rounded-2xl border border-zinc-800/80">
-                                                        <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider mb-1">Séance</p>
-                                                        <p className="text-white font-bold text-2xl leading-tight">{verificationResult.horaire}</p>
+                                                        <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider mb-1">Date</p>
+                                                        <p className="text-white font-bold text-xl leading-tight">{verificationResult.dateSeance}</p>
                                                     </div>
                                                     <div className="bg-black p-4 rounded-2xl border border-zinc-800/80">
-                                                        <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider mb-1">Salle</p>
-                                                        <p className="text-white font-bold text-2xl leading-tight">{verificationResult.salle}</p>
+                                                        <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider mb-1">Horaire</p>
+                                                        <p className="text-white font-bold text-xl leading-tight">{verificationResult.horaire}</p>
                                                     </div>
+                                                </div>
+
+                                                <div className="bg-black p-4 rounded-2xl border border-zinc-800/80">
+                                                    <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider mb-1">Salle</p>
+                                                    <p className="text-white font-bold text-xl leading-tight">{verificationResult.salle}</p>
+                                                </div>
+                                            </div>
+
+                                            {/* CARD 3: SIÈGES */}
+                                            <div className="bg-zinc-950/50 p-5 rounded-3xl border border-zinc-800 flex flex-col gap-4">
+                                                <div className="flex items-center gap-2 border-b border-zinc-800 pb-2">
+                                                    <div className="w-2 h-2 rounded-full bg-zinc-500"></div>
+                                                    <h4 className="text-zinc-400 text-sm font-bold uppercase tracking-widest">Sièges Réservés</h4>
+                                                </div>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {verificationResult.sieges?.map((siege, idx) => (
+                                                        <span key={idx} className="bg-black border border-zinc-800 text-white px-3 py-1.5 rounded-lg font-bold text-sm">
+                                                            {siege}
+                                                        </span>
+                                                    ))}
                                                 </div>
                                             </div>
                                         </div>

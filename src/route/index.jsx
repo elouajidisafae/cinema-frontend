@@ -9,6 +9,7 @@ import Unauthorized from "../pages/Unauthorized.jsx";
 
 import ClientDashboard from "../pages/client/Dashboard.jsx";
 import ReservationPage from "../pages/client/ReservationPage.jsx";
+import ConfirmReservation from "../pages/client/ConfirmReservation.jsx";
 import AdminDashboard from "../pages/admin/Dashboard.jsx";
 import CommercialDashboard from "../pages/commercial/Dashboard.jsx";
 import AfficherSeancesActives from "../pages/commercial/AfficherSeancesActives.jsx";
@@ -93,6 +94,7 @@ export const router = createBrowserRouter([
         element: <RoleRoute allowedRoles="CLIENT" />,
         children: [
             { path: "dashboard", element: <ClientDashboard /> },
+            { path: "reservations/confirm/:code", element: <ConfirmReservation /> },
         ],
     },
 

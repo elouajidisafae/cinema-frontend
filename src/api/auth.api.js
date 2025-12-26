@@ -1,4 +1,4 @@
-// src/api/auth.api.js
+//Centralise tous les appels HTTP vers le backend Spring Boot
 import api from "./api";
 
 export const authApi = {

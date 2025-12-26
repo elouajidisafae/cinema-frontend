@@ -6,7 +6,7 @@ export const adminApi = {
         api.get("/admin/dashboard/users/stats"),
 
     getFilmSalleStats: () =>
-        api.get("/admin/films-salles/stats"), // ✅ CORRIGÉ
+        api.get("/admin/films-salles/stats"),
 
     getRecentActivities: () =>
         api.get("/admin/dashboard/activities"),
@@ -82,7 +82,6 @@ export const adminApi = {
     getFilteredReservations: (params) => api.get("/admin/historique/reservations", { params }),
     getFilteredClients: (params) => api.get("/admin/clients", { params }),
 
-    // --- Offers Management ---
     getAllOffres: () => api.get("/offres"),
     getInactiveOffres: () => api.get("/offres/inactive"),
     getOffreById: (id) => api.get(`/offres/${id}`),

@@ -113,11 +113,8 @@ export default function CinemanaRegister() {
                                 <h2 className="text-6xl font-black text-white leading-none mb-2">
                                     Votre
                                 </h2>
-                                <h2 className="text-6xl font-black text-red-600 leading-none mb-2">
-                                    cinéma
-                                </h2>
                                 <h2 className="text-6xl font-black text-red-600 leading-none mb-6">
-                                    digital
+                                    cinéma digital
                                 </h2>
                                 <p className="text-gray-400 text-sm leading-relaxed max-w-lg">
                                     Consultez les films, choisissez votre séance, réservez vos places et recevez vos billets PDF avec QR code par email.

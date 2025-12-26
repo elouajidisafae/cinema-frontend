@@ -131,28 +131,6 @@ export default function Offres() {
 
             <div className="container mx-auto px-6">
 
-                {/* CATEGORY FILTERS */}
-                <div className="mb-12">
-                    <div className="flex items-center gap-3 mb-6">
-                        <Filter className="text-red-500" size={24} />
-                        <h2 className="text-2xl font-black text-white">Filtrer par catégorie</h2>
-                    </div>
-                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                        {categories.map(cat => (
-                            <button
-                                key={cat.id}
-                                onClick={() => setActiveCategory(cat.id)}
-                                className={`px-6 py-3 rounded-full font-bold whitespace-nowrap transition-all ${activeCategory === cat.id
-                                    ? 'bg-red-600 text-white scale-105'
-                                    : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800'
-                                }`}
-                            >
-                                {cat.icon} {cat.name}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
                 {/* PRICING TABLE SECTION */}
                 <div className="mb-16 animate-in fade-in slide-in-from-top-10 duration-700">
                     <div className="flex items-center gap-3 mb-8">
@@ -200,6 +178,28 @@ export default function Offres() {
                                 <div className="h-full w-2/3 bg-red-600"></div>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                {/* CATEGORY FILTERS */}
+                <div className="mb-12">
+                    <div className="flex items-center gap-3 mb-6">
+                        <Filter className="text-red-500" size={24} />
+                        <h2 className="text-2xl font-black text-white">Filtrer par Offre</h2>
+                    </div>
+                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                        {categories.map(cat => (
+                            <button
+                                key={cat.id}
+                                onClick={() => setActiveCategory(cat.id)}
+                                className={`px-6 py-3 rounded-full font-bold whitespace-nowrap transition-all ${activeCategory === cat.id
+                                    ? 'bg-red-600 text-white scale-105'
+                                    : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800'
+                                }`}
+                            >
+                                {cat.icon} {cat.name}
+                            </button>
+                        ))}
                     </div>
                 </div>
 

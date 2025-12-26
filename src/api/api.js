@@ -1,13 +1,13 @@
-// src/api/api.js
+//Cela simplifie énormément la communication entre le frontend et le backend et garantit la sécurité de l’application.
 import axios from "axios";
-
+//Ce fichier centralise toutes les requêtes HTTP vers le backend.
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080/api",
-    timeout: 10000,
+    timeout: 10000, // 10 secondes
     headers: { "Content-Type": "application/json" },
 });
 
-// Ajout automatique du token
+// Ajout automatique du token dans les en-tete
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem("token");
     if (token) config.headers.Authorization = `Bearer ${token}`;

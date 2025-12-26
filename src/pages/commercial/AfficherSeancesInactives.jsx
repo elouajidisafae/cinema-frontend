@@ -28,14 +28,22 @@ export default function AfficherSeancesInactives() {
         setLoading(true);
         setError(null);
         try {
-            console.log("🔄 Loading inactive sessions data...");
+            console.log(" Loading inactive sessions data...");
             const [seancesData, filmsData, sallesData] = await Promise.all([
                 commercialApi.getSeances(filters),
                 commercialApi.getFilms(),
                 commercialApi.getSalles()
             ]);
-            // Filter only inactive seances
-            const inactiveSeances = seancesData.filter(s => s.active === false);
+            console.log("📊 Données brutes (Inactives) reçues:", seancesData);
+
+            // Filter: Inactive OR Past sessions
+            const now = new Date();
+            const inactiveSeances = seancesData
+                .filter(s => !s.active || new Date(s.dateHeure) < now)
+                .sort((a, b) => new Date(b.dateHeure) - new Date(a.dateHeure)); // DESC
+
+            console.log("✅ Séances archivées (Inactives ou Passées):", inactiveSeances);
+
             setSeances(inactiveSeances);
 
             setFilms(filmsData);
@@ -171,6 +179,7 @@ export default function AfficherSeancesInactives() {
                             <th className="px-4 py-3">Salle</th>
                             <th className="px-4 py-3">Date & Heure</th>
                             <th className="px-4 py-3">Places</th>
+
                             <th className="px-4 py-3 text-center">Actions</th>
                         </tr>
                         </thead>
@@ -197,6 +206,7 @@ export default function AfficherSeancesInactives() {
                                                 </span>
                                         </div>
                                     </td>
+
                                     <td className="px-4 py-2.5">
                                         <div className="flex flex-col gap-1">
                                             <div className="flex justify-between text-[10px] text-zinc-500">

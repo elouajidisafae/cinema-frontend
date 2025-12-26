@@ -34,7 +34,7 @@ export default function AfficherSeancesActives() {
         setLoading(true);
         setError(null);
         try {
-            console.log("🔄 Loading active sessions data...");
+            console.log(" Loading active sessions data...");
             const [seancesData, filmsData, sallesData, categoriesData] = await Promise.all([
                 commercialApi.getSeances(filters),
                 commercialApi.getFilms(),
@@ -247,6 +247,7 @@ export default function AfficherSeancesActives() {
                                 <th className="px-4 py-3">Salle</th>
                                 <th className="px-4 py-3">Date & Heure</th>
                                 <th className="px-4 py-3">Places</th>
+
                                 <th className="px-4 py-3 text-center">Actions</th>
                             </tr>
                             </thead>
@@ -290,6 +291,7 @@ export default function AfficherSeancesActives() {
                                                 </div>
                                             </div>
                                         </td>
+
                                         <td className="px-4 py-2.5 text-center">
                                             <div className="flex items-center justify-center gap-2">
                                                 <button

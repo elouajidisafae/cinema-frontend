@@ -49,7 +49,7 @@ export default function ReservationPage() {
             const now = new Date();
             const hoursUntilSeance = (seanceDate - now) / (1000 * 60 * 60);
 
-            if (hoursUntilSeance < 4) {
+            if (hoursUntilSeance < 3) {
                 const seanceTimeStr = seanceDate.toLocaleString('fr-FR', {
                     weekday: 'long',
                     day: 'numeric',
@@ -58,7 +58,7 @@ export default function ReservationPage() {
                     minute: '2-digit'
                 });
                 const remainingHours = Math.max(0, hoursUntilSeance).toFixed(1);
-                setError(`Cette séance (${seanceTimeStr}) n'est plus disponible à la réservation. Il reste ${remainingHours}h avant le début, mais les réservations doivent être effectuées au moins 4 heures à l'avance.`);
+                setError(`Cette séance (${seanceTimeStr}) n'est plus disponible à la réservation. Il reste ${remainingHours}h avant le début, mais les réservations doivent être effectuées au moins 3 heures à l'avance.`);
                 setLoading(false);
                 return;
             }
